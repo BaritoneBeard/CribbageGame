@@ -5,10 +5,10 @@ import logging
 logger = logging.getLogger("server.py")
 
 logging.basicConfig(filename="log.txt")
-logger.error("this is an ERROR test")
-logger.warning("this is a warning test")
-logger.info("this is an info test")
-logger.debug("this is a debug test")
+# logger.error("this is an ERROR test")
+# logger.warning("this is a warning test")
+# logger.info("this is an info test")
+# logger.debug("this is a debug test")
 application = Flask(__name__)
 api = Api(application)
 
@@ -20,7 +20,7 @@ queries = {"test1": "buy something", "index_page": "This is the home page."}
 class QuerySimple(Resource):
     def post(self, query_id):  # Create
         # HTTP request, return data from 'data'
-        logger.info("Attempting to create{}".format(query_id))
+        logger.info("Attempting to create {}\n".format(query_id))
         queries[query_id] = request.form["data"]
         try:
             return {query_id: queries[query_id]}, 201
@@ -29,6 +29,7 @@ class QuerySimple(Resource):
 
     def get(self, query_id="index_page"):  # Return
         # search dictionary for key=query_id, return it
+        logger.info("Attempting to Return {}\n".format(query_id))
         try:
             return {query_id: queries.get(query_id, "does not exit")}
         except TypeError:
