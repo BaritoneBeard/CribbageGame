@@ -3,8 +3,8 @@ from flask_restful import Resource, Api
 import logging
 
 logger = logging.getLogger("server.py")
-
-logging.basicConfig(filename="log.txt")
+logging.basicConfig(filename="serverlog.txt", filemode ='w')  # every time server is restarting the log is overwritten
+logger.setLevel(logging.INFO)
 # logger.error("this is an ERROR test")
 # logger.warning("this is a warning test")
 # logger.info("this is an info test")
