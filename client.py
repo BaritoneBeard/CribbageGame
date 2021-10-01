@@ -13,7 +13,7 @@ def main():
 
     logger.info("attempting to connect with server . . .")
     try:
-        r = requests.put('http://127.0.0.1:5000/test1', data = parameters)
+        r = requests.get('http://127.0.0.1:5000')  # /test1', data = parameters)
         logger.info("Successfully posted data to server")
     except ConnectionError:
         print("The server you are trying to reach is down. Try again later.")
@@ -29,7 +29,7 @@ def main():
         logger.error("Connection failed due to some unexpected error")
 
     print(r)
-    print(r.text)
+    print(r.status_code)
 
 if __name__ == '__main__':
     main()
