@@ -21,7 +21,7 @@ class QuerySimple(Resource):
     def post(self, query_id):  # Create
         # HTTP request, return data from 'data'
         logger.info("Attempting to Create {} \n".format(query_id))
-        queries[query_id] = request.form["data"]
+        queries[query_id] = request.form["data"]  # change this line if we move away from 'data' as our query word
         try:
             return {query_id: queries[query_id]}, 201
         except:

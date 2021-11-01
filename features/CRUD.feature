@@ -1,4 +1,4 @@
-Feature: create [READ] update delete
+Feature: create read update delete
 
   Scenario: Search for valid connection
     Given The server is running
