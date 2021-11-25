@@ -1,5 +1,5 @@
 from behave import *
-from scoring import calc_15, calc_pairs
+from scoring import calc_15, calc_pairs, calc_run, calc_flush, nob
 
 @given('I have a list of card ranks')
 def step_impl(context):
@@ -26,3 +26,32 @@ def step_impl(context):
     card_list = [4, 5, 5, 5, 5]
     assert calc_pairs(card_list) == 12
 
+@step('I can tally how many cards are in a run')
+def step_impl(context):
+    card_list = [4,5]
+    assert calc_run(card_list) == 2
+    card_list = [4,5,6]
+    assert calc_run(card_list) == 3
+    card_list = [4,5,7,8]
+    assert calc_run(card_list) == 4
+
+@step('I can determine a flush')
+def step_impl(context):
+    flipped_suit = 'Diamonds'
+    card_list = ['Diamonds','Diamonds','Diamonds','Diamonds']
+    assert calc_flush(card_list, flipped_suit) == 5
+    card_list = ['Hearts','Hearts','Hearts','Hearts']
+    assert calc_flush(card_list, flipped_suit) == 4
+    card_list = ['Diamonds','Diamonds','Diamonds','Hearts']
+    assert calc_flush(card_list, flipped_suit) == 0
+
+@step('I can determine a nob')
+def step_impl(context):
+    rank_list = [3,5,7,11]
+    suit_list = ['Diamonds','Hearts','Spades','Clubs']
+    flipped_suit = 'Diamonds'                           # Jack of Clubs != <Rank> of Diamonds
+    assert nob(rank_list,suit_list,flipped_suit) == 0
+    flipped_suit = 'Clubs'                              # Jack of Clubs == <Rank> of Clubs
+    assert nob(rank_list,suit_list,flipped_suit) == 1
+    rank_list = [3,5,11,7]                              # Jack of Spades != <Rank> of Clubs
+    assert nob(rank_list, suit_list, flipped_suit) == 0

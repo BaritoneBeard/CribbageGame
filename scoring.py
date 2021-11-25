@@ -15,15 +15,14 @@ p2_score = 0
     Pair Royal 	6 points 	Three of a kind
     Double Pair Royal 	12 points 	Four of a kind
     Run 	1 point per card 	Cards in consecutive order (i.e. – 5-6-7-8)
-    Four Card Flush 	4 points 	All four cards in your hand are of the same suit (sometimes the four-card flush does not count, see below)
+    Four Card Flush 	4 points 	All four cards in your hand are of the same suit 
     Five Card Flush 	5 points 	All five cards in your hand (and using the starter) are the same suit
     Go 	1 point 	The last player to lay a card
     Nobs 	1 point 	Jack of the same suit as the starter. Referred to as “One for his nobs/nob” in the United Kingdom.
 '''
 
-
 '''
-    Checks each combination of cards and adds 2 to total for each combination found that equals exactly 15.
+    Checks each combination of cards and adds 2 to total for each combination found that equals exactly 15 or 31.
     Starts with two card combos, then goes to 3, 4, 5...
     Ensures no duplicates, for example, a hand with cards 4,5,6 could have 4,5,6 , 5,4,6 , 6,5,4 ... etc.
 '''
@@ -40,7 +39,7 @@ def calc_15(nums: list):
             for card in combo:
                 total += card
                 cards_combined.append(card)
-                if total == 15 and cards_combined not in repeats:  # Without checking for repeats the scores get wonky
+                if total == 15 and cards_combined not in repeats:
                     repeats.append(cards_combined)  # ensures no duplicates
                     score += 2
 
@@ -71,51 +70,131 @@ def calc_pairs(card_list: list):
 
 
 '''
-    Will MOST LIKELY need refactoring when we move on past the mock.
-    Calculates score, calls other calc methods.
-    Separates data retrieved from the mock into a list of card ranks and suits.
+    Calculate how many cards are in a run. If two card ranks are sequential, adds both to a list. 
+    Knowing this will cause duplicates, rather than putting more conditional statements I just 
+    let the duplicates accrue and then removes them at the end. 
+    The actual cards and their ranks don't matter, only how many are in a run. So the program returns the length
+    of the list of cards in the run minus all duplicates.
 '''
 
 
-def calc_score(dictionary_list: list):
+def calc_run(card_list: list):
+    cards_in_run = []
+    card_list.sort()
+    current = -1  # If aces are low, aces = 1, so we don't want to give free points just for having an ace.
+    for i in card_list:
+        if i == current + 1:
+            cards_in_run.append(i)
+            cards_in_run.append(current)
+        current = i
+    return len(set(cards_in_run))  # set() function removes all duplicates
+
+
+'''
+    Calculates if every suit is the same. The easiest way to do this is remove all duplicates and check if the 
+    resulting length of the list is exactly 1.
+    In the event that the suit is the same as te flipped card's, adds an extra point.
+'''
+
+
+def calc_flush(suit_list: list, flipped_suit: str):
+    if len(set(suit_list)) == 1:            # flush of 4
+        if flipped_suit == suit_list[0]:    # flush of 5
+            return 5
+        else:
+            return 4
+    else:                                   # no flush
+        return 0
+
+
+'''
+    One for this nob: check if jack exists in hand at all, then if it does, check the suit of the flipped card,
+    if those match, congrats, you've earned a single point.
+    
+    if this starts being wonky, we'll have to make a class for cards, which is something I want to avoid only
+    because I haven't needed one thus far, so it seems like it would be a waste.
+'''
+
+
+def nob(rank_list: list, suit_list: list, flipped_suit:str):
+    if 11 in rank_list:
+        if suit_list[rank_list.index(11)] == flipped_suit:
+            return 1
+        else:
+            return 0
+    else:
+        return 0
+
+
+'''
+    Trivial, but included for the sake of completion.
+'''
+
+
+def go():
+    return 1
+
+'''
+    Will MOST LIKELY need refactoring when we move on past the mock.
+    Calculates score, calls other calc methods.
+    Separates data retrieved from the mock into a list of card ranks and suits.
+    This will be what gets called from other files.
+'''
+
+
+def calc_score(dictionary_list: list, flipped_card: dict, player: int):
     score = 0
     rank_list = []
     suit_list = []
+    # flipped_rank = flipped_card['rank']
+    flipped_suit = flipped_card['suit']
     for i in range(len(dictionary_list)):
         rank_list.append(dictionary_list[i]['rank'])
         suit_list.append(dictionary_list[i]['suit'])
 
-    # rank_list.sort()
-    # suit_list.sort()
     print(rank_list)
-    print("\n", suit_list)
-    # print(calc_15(rank_list))
-    # print(calc_pairs(rank_list))
+    print(suit_list, "\n")
+
     score += calc_15(rank_list)
     score += calc_pairs(rank_list)
+    score += calc_run(rank_list)
+    score += calc_flush(suit_list, flipped_suit)
+    score += nob(rank_list, suit_list, flipped_suit)
+
+    if player:
+        global p1_score
+        p1_score += score
+    else:
+        global p2_score
+        p2_score += score
 
 
 '''
-    Main: tries to create a deck and collect cards from the top.
-    I elected to have this draw 8 cards to get a good selection of cards to send to the functions.
+    Main: tries to create a deck and collect cards from the top. Just used as a test.
 '''
 
 
 def main():
     r = requests.post(url + deckname)
+    player = 1
     try:
-        r = requests.get(url + deckname + '/cards/8')
+        r = requests.get(url + deckname + '/cards/9')
         # print(r.content)
         dict = json.loads(r.text)  # list of dictionaries
         # print(dict)
         # print(dict[0]['rank'])
         # print(dict[0]['suit'])
-        calc_score(dict[1:6])  # These cards are the only ones of the 8 drawn that have a 15, somehow.
+        flipped_card = dict[8]
+        calc_score(dict[:4], flipped_card, player)
+        player = (player + 1) % 2
+        calc_score(dict[4:8], flipped_card, player)
+        print("player 1 score: ", p1_score)
+        print("player 2 score: ", p2_score)
     except HTTPError as e:  # eventually, make this log
         print("Doesn't work as intended yet")
     finally:
         r = requests.delete(url + deckname)
-        print("\ndeleted, program finished")
+        print("\ndeleted deck, program finished")
 
 
 if __name__ == '__main__':
