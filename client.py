@@ -13,6 +13,7 @@ def main():
     url = 'http://127.0.0.1:5000'
 
     # data for the hand
+    # DEPRECATED : still here because it's data that gets sent
     cards = ["AC", "7D", "KH", "9S"]
     hand = { 'data':json.dumps(cards) }
 
