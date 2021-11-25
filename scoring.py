@@ -20,17 +20,31 @@ Go 	1 point 	The last player to lay a card
 Nobs 	1 point 	Jack of the same suit as the starter. Referred to as “One for his nobs/nob” in the United Kingdom.
 '''
 
-def calc_15(nums:list):
+
+class Card:
+    def __init__(self, rank, suit):
+        self.rank = rank
+        self.suit = suit
+
+    def get_suit(self):
+        return self.suit
+
+    def get_rank(self):
+        return self.rank
+
+
+def calc_15(nums: list):
+    nums.sort()
     score = 0
     repeats = []
     for i in range(2, len(nums)):
-        for combo in itertools.combinations(nums,i):    # built in python tool to check each combination of cards
+        for combo in itertools.combinations(nums, i):  # built in python tool to check each combination of cards
             total = 0
             debug = []
             for card in combo:
                 total += card
                 debug.append(card)
-                if total == 15 and debug not in repeats:    # Without checking for repeats the scores get wonky
+                if total == 15 and debug not in repeats:  # Without checking for repeats the scores get wonky
                     repeats.append(debug)
                     # print(debug)
                     score += 2
@@ -38,35 +52,68 @@ def calc_15(nums:list):
     return score
 
 
+'''
+    deletes all cards from incoming list and calculates how many were removed to award points.
+    a pair is worth 2 points, 3 of a kind is worth 6, and 4 of a kind is worth 12.
+    This relation turns out to be a sequence of n^2 + n.
+    if n = 1 : 1^2 + 1 = 1 + 1 = 2
+    if n = 2 : 2^2 + 2 = 4 + 2 = 6
+    if n = 3 : 3^2 + 3 = 9 + 3 = 12
+    Therefore, if n is the number of duplicate cards removed, we have our number of points awarded.
+'''
+def calc_pairs(card_list: list):
+    score = 0
+    while card_list:
+        head = card_list[0]
+        original_size = len(card_list)
+        # card_list = set(card_list)
+        # print("card list before reduction:", card_list)
+        card_list = filter(lambda val: val != head, card_list)
+        card_list = list(card_list)
+        # print("card list after reduction:", card_list)
+        n = (original_size - len(card_list)) - 1     # removes duplicates AND the card being compared, so we subtract 1
+        score += (n**2 + n)     # again, 2, 6, 12
+    # print("final score: ", score)
+    return score
 
-def calc_score(dictionary_list:list):
+
+
+def calc_score(dictionary_list: list):
+    score = 0
     rank_list = []
     suit_list = []
+    card_list = []
     for i in range(len(dictionary_list)):
         rank_list.append(dictionary_list[i]['rank'])
         suit_list.append(dictionary_list[i]['suit'])
-    rank_list.sort()
-    suit_list.sort()
+        # card_list.append(Card(rank_list[i], suit_list[i]))
+        card_list.append(dictionary_list[i]['name'])
+
+    # rank_list.sort()
+    # suit_list.sort()
     print(rank_list)
     print("\n", suit_list)
-    print(calc_15(rank_list))
+    # print(calc_15(rank_list))
+    calc_pairs(card_list)
+
+
 
 def main():
     r = requests.post(url + deckname)
     try:
         r = requests.get(url + deckname + '/cards/8')
-       # print(r.content)
-        dict = json.loads(r.text)       # list of dictionaries
+        # print(r.content)
+        dict = json.loads(r.text)  # list of dictionaries
         # print(dict)
         # print(dict[0]['rank'])
         # print(dict[0]['suit'])
-        calc_score(dict[1:6])           # These cards are the only ones of the 8 drawn that have a 15, somehow.
-    except HTTPError as e:              # eventually, make this log
+        calc_score(dict[1:6])  # These cards are the only ones of the 8 drawn that have a 15, somehow.
+    except HTTPError as e:  # eventually, make this log
         print("Doesn't work as intended yet")
     finally:
-        r = requests.delete(url+deckname)
+        r = requests.delete(url + deckname)
         print("\ndeleted, program finished")
+
 
 if __name__ == '__main__':
     main()
-

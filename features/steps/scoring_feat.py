@@ -1,5 +1,5 @@
 from behave import *
-from scoring import calc_15
+from scoring import calc_15, calc_pairs
 
 @given('I have a list of card ranks')
 def step_impl(context):
@@ -14,3 +14,15 @@ def step_impl(context):
     assert calc_15(card_ranks) == 2     # 3,5,7 = 15. That's it. 2 points.
     card_ranks = []
     assert calc_15(card_ranks) == 0     # no cards, returns 0. May need some error handling in-function
+
+@step('I can tally how many cards of a kind exist')
+def step_impl(context):
+    card_list = [4,5]
+    assert calc_pairs(card_list) == 0
+    card_list = [4, 5, 5]
+    assert calc_pairs(card_list) == 2
+    card_list = [4, 5, 5, 5]
+    assert calc_pairs(card_list) == 6
+    card_list = [4, 5, 5, 5, 5]
+    assert calc_pairs(card_list) == 12
+
