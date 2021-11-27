@@ -87,7 +87,11 @@ def calc_run(card_list: list):
             cards_in_run.append(i)
             cards_in_run.append(current)
         current = i
-    return len(set(cards_in_run))  # set() function removes all duplicates
+    run = len(set(cards_in_run))    # set() function removes all duplicates
+    if run >= 3:
+        return run
+    else:
+        return 0
 
 
 '''

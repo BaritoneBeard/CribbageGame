@@ -29,7 +29,7 @@ def step_impl(context):
 @step('I can tally how many cards are in a run')
 def step_impl(context):
     card_list = [4,5]
-    assert calc_run(card_list) == 2
+    assert calc_run(card_list) == 0
     card_list = [4,5,6]
     assert calc_run(card_list) == 3
     card_list = [4,5,7,8]
