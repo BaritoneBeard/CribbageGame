@@ -171,35 +171,3 @@ def calc_score(dictionary_list: list, flipped_card: dict, player: int):
     else:
         global p2_score
         p2_score += score
-
-
-'''
-    Main: tries to create a deck and collect cards from the top. Just used as a test.
-'''
-
-
-def main():
-    r = requests.post(url + deckname)
-    player = 1
-    try:
-        r = requests.get(url + deckname + '/cards/9')
-        # print(r.content)
-        dict = json.loads(r.text)  # list of dictionaries
-        # print(dict)
-        # print(dict[0]['rank'])
-        # print(dict[0]['suit'])
-        flipped_card = dict[8]
-        calc_score(dict[:4], flipped_card, player)
-        player = (player + 1) % 2
-        calc_score(dict[4:8], flipped_card, player)
-        print("player 1 score: ", p1_score)
-        print("player 2 score: ", p2_score)
-    except HTTPError as e:  # eventually, make this log
-        print("Doesn't work as intended yet")
-    finally:
-        r = requests.delete(url + deckname)
-        print("\ndeleted deck, program finished")
-
-
-if __name__ == '__main__':
-    main()
