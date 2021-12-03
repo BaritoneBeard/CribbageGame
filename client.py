@@ -4,10 +4,6 @@ import logging
 import json
 from Hand import Hand
 
-logger = logging.getLogger("client.py")
-logging.basicConfig(filename="clientlog.txt")
-# logger.setLevel(logging.ERROR)
-logger.setLevel(logging.INFO)
 
 base_url = 'http://127.0.0.1:5000/'
 
@@ -16,7 +12,9 @@ def test_game_resource_post(game_obj, game_id):
     URL = base_url + 'games/' + str(game_id)
     DATA = {'game_ID': game_obj}
     post_request = requests.post(url=URL, data=DATA)
-    print(post_request.text)
+    # post_info = json.loads(post_request.text)
+    # print("Regular post_request text: ", post_request.text)
+    # print("Converted Json info: ", post_info)
 
 
 def test_game_resource_get(game_id):
@@ -31,8 +29,8 @@ def test_game_resource_delete(game_id):
     print(delete_request.text)
 
 
-def test_player_resource_post(player_obj, game_id):
-    URL = base_url + 'games/' + str(game_id) + '/' + player_obj.player_name  # specify the game_ID the player is a part of.
+def test_player_resource_post(player_obj, game_id):  # specify the game_ID the player is a part of.
+    URL = base_url + 'games/' + str(game_id) + '/' + player_obj.player_name
     DATA = {'player': player_obj}
     player_post_request = requests.post(url=URL, data=DATA)
     print(player_post_request.text)
@@ -51,27 +49,27 @@ def test_player_resource_delete(player_name, game_id):
 
 
 def test_hand_resource_post(hand_obj, player_name, game_id):
-    URL = base_url + 'games/' + str(game_id) + '/' + player_name + '/' + str(hand_obj.hand_id)
+    URL = base_url + 'games/' + str(game_id) + '/' + player_name + '/hand/' + str(hand_obj.hand_id)
     DATA = {'hand_ID': hand_obj}
     hand_post_request = requests.post(url=URL, data=DATA)
     print(hand_post_request.text)
 
 
 def test_hand_resource_get(hand_id, player_name, game_id):
-    URL = base_url + 'games/' + str(game_id) + '/' + player_name + '/' + str(hand_id)
+    URL = base_url + 'games/' + str(game_id) + '/' + player_name + '/hand/' + str(hand_id)
     hand_get_request = requests.get(url=URL)
     print(hand_get_request.text)
 
 
 def test_hand_resource_delete(hand_id, player_name, game_id):
-    URL = base_url + 'games/' + str(game_id) + '/' + player_name + '/' + str(hand_id)
+    URL = base_url + 'games/' + str(game_id) + '/' + player_name + '/hand/' + str(hand_id)
     hand_delete_request = requests.delete(url=URL)
     print(hand_delete_request.text)
 
 
 def testing_grounds():
-    sample_game = Game(123)
-    sample_hand = Hand(3935, ['2H', 'KD'], ['AS', '7C'])
+    sample_game = Game(123)  # the game_ID will be randomly generated and stored on the backend when the user requests to start a new game.
+    sample_hand = Hand(3935, ['2H', 'KD'], ['AS', '7C'])  # the hand_ID should be randomly generated and stored. Perhaps Player class can keep a list of unique hand_IDs
     sample_player = Player(sample_hand, True, False, 'tyler')
 
     test_game_resource_post(sample_game, sample_game.game_id)
