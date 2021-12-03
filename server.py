@@ -39,6 +39,7 @@ class Player(Resource):
         except KeyError:
             return Response(status=409, response="Unable to create a new player at this time.")
 
+    # Potentially need to check if the game exists first before trying to access the player.
     def get(self, player_name, game_ID):
         try:
             return Response(status=200, response=players[player_name])
