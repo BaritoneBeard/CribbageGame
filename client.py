@@ -9,45 +9,64 @@ logging.basicConfig(filename="clientlog.txt")
 # logger.setLevel(logging.ERROR)
 logger.setLevel(logging.INFO)
 
-url = 'http://127.0.0.1:5000/'
+base_url = 'http://127.0.0.1:5000/'
 
 
-def test_game_resource_post(game_obj, game_ID):
-    URL = url + 'games/' + str(game_ID)
+def test_game_resource_post(game_obj, game_id):
+    URL = base_url + 'games/' + str(game_id)
     DATA = {'game_ID': game_obj}
     post_request = requests.post(url=URL, data=DATA)
     print(post_request.text)
 
 
-def test_game_resource_get(game_ID):
-    URL = url + 'games/' + str(game_ID)
+def test_game_resource_get(game_id):
+    URL = base_url + 'games/' + str(game_id)
     get_request = requests.get(url=URL)
     print(get_request.text)
 
 
-def test_game_resource_delete(game_ID):
-    URL = url + 'games/' + str(game_ID)
+def test_game_resource_delete(game_id):
+    URL = base_url + 'games/' + str(game_id)
     delete_request = requests.delete(url=URL)
     print(delete_request.text)
 
 
-def test_player_resource_post(player_obj, game_ID):
-    URL = url + 'games/' + str(game_ID) + '/' + player_obj.player_name  # specify the game_ID the player is a part of.
+def test_player_resource_post(player_obj, game_id):
+    URL = base_url + 'games/' + str(game_id) + '/' + player_obj.player_name  # specify the game_ID the player is a part of.
     DATA = {'player': player_obj}
     player_post_request = requests.post(url=URL, data=DATA)
     print(player_post_request.text)
 
 
-def test_player_resource_get(player_name, game_ID):
-    URL = url + 'games/' + str(game_ID) + '/' + player_name
+def test_player_resource_get(player_name, game_id):
+    URL = base_url + 'games/' + str(game_id) + '/' + player_name
     player_get_request = requests.get(url=URL)
     print(player_get_request.text)
 
 
-def test_player_resource_delete(player_name, game_ID):
-    URL = url + 'games/' + str(game_ID) + '/' + player_name
+def test_player_resource_delete(player_name, game_id):
+    URL = base_url + 'games/' + str(game_id) + '/' + player_name
     player_delete_request = requests.delete(url=URL)
     print(player_delete_request.text)
+
+
+def test_hand_resource_post(hand_obj, hand_id, player_name, game_id):
+    URL = base_url + 'games/' + str(game_id) + '/' + player_name + '/' + str(hand_id)
+    DATA = {'hand_ID': hand_obj}
+    hand_post_request = requests.post(url=URL, data=DATA)
+    print(hand_post_request.text)
+
+
+def test_hand_resource_get(hand_id, player_name, game_id):
+    URL = base_url + 'games/' + str(game_id) + '/' + player_name + '/' + str(hand_id)
+    hand_get_request = requests.get(url=URL)
+    print(hand_get_request.text)
+
+
+def test_hand_resource_delete(hand_id, player_name, game_id):
+    URL = base_url + 'games/' + str(game_id) + '/' + player_name + '/' + str(hand_id)
+    hand_delete_request = requests.delete(url=URL)
+    print(hand_delete_request.text)
 
 
 def testing_grounds():
@@ -55,26 +74,28 @@ def testing_grounds():
     sample_hand = Hand(['2H', 'KD'], ['AS', '7C'])
     sample_player = Player(sample_hand, True, False, 'tyler')
 
-    test_game_resource_post(sample_game, sample_game.game_ID)
-    test_game_resource_get(sample_game.game_ID)
-    test_game_resource_delete(sample_game.game_ID)
+    test_game_resource_post(sample_game, sample_game.game_id)
+    test_game_resource_get(sample_game.game_id)
+    test_game_resource_delete(sample_game.game_id)
 
     print()
 
-    test_player_resource_post(sample_player, sample_game.game_ID)
-    test_player_resource_get(sample_player.player_name, sample_game.game_ID)
-    test_player_resource_delete(sample_player.player_name, sample_game.game_ID)
+    test_player_resource_post(sample_player, sample_game.game_id)
+    test_player_resource_get(sample_player.player_name, sample_game.game_id)
+    test_player_resource_delete(sample_player.player_name, sample_game.game_id)
 
     print()
 
-
+    test_hand_resource_post(sample_hand, 3935, sample_player.player_name, sample_game.game_id)
+    test_hand_resource_get(3935, sample_player.player_name, sample_game.game_id)
+    test_hand_resource_delete(3935, sample_player.player_name, sample_game.game_id)
 
 
 class Game:
-    def __init__(self, game_ID):
+    def __init__(self, game_id):
         self.player_1 = Player
         self.player_2 = Player
-        self.game_ID = game_ID
+        self.game_id = game_id
 
 
 class Player:
