@@ -50,8 +50,8 @@ def test_player_resource_delete(player_name, game_id):
     print(player_delete_request.text)
 
 
-def test_hand_resource_post(hand_obj, hand_id, player_name, game_id):
-    URL = base_url + 'games/' + str(game_id) + '/' + player_name + '/' + str(hand_id)
+def test_hand_resource_post(hand_obj, player_name, game_id):
+    URL = base_url + 'games/' + str(game_id) + '/' + player_name + '/' + str(hand_obj.hand_id)
     DATA = {'hand_ID': hand_obj}
     hand_post_request = requests.post(url=URL, data=DATA)
     print(hand_post_request.text)
@@ -71,7 +71,7 @@ def test_hand_resource_delete(hand_id, player_name, game_id):
 
 def testing_grounds():
     sample_game = Game(123)
-    sample_hand = Hand(['2H', 'KD'], ['AS', '7C'])
+    sample_hand = Hand(3935, ['2H', 'KD'], ['AS', '7C'])
     sample_player = Player(sample_hand, True, False, 'tyler')
 
     test_game_resource_post(sample_game, sample_game.game_id)
@@ -86,9 +86,9 @@ def testing_grounds():
 
     print()
 
-    test_hand_resource_post(sample_hand, 3935, sample_player.player_name, sample_game.game_id)
-    test_hand_resource_get(3935, sample_player.player_name, sample_game.game_id)
-    test_hand_resource_delete(3935, sample_player.player_name, sample_game.game_id)
+    test_hand_resource_post(sample_hand, sample_player.player_name, sample_game.game_id)
+    test_hand_resource_get(sample_hand.hand_id, sample_player.player_name, sample_game.game_id)
+    test_hand_resource_delete(sample_hand.hand_id, sample_player.player_name, sample_game.game_id)
 
 
 class Game:
