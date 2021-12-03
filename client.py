@@ -8,9 +8,11 @@ logging.basicConfig(filename="clientlog.txt")
 # logger.setLevel(logging.ERROR)
 logger.setLevel(logging.INFO)
 
+url = 'http://127.0.0.1:5000'
+
+'''
 def main():
     os.environ['NO_PROXY'] = '127.0.0.1'  # disable proxy or else request cannot find localhost
-    url = 'http://127.0.0.1:5000'
 
     # data for the hand
     # DEPRECATED : still here because it's data that gets sent
@@ -40,6 +42,19 @@ def main():
     print(r)
     print(r.text)
     print(r.status_code)
+    
+'''
 
-if __name__ == '__main__':
-    main()
+def test_game_resource_post(game_ID):
+    URL = url + '/games/' + str(game_ID)
+    DATA = {'game_ID': game_ID}
+    post_request = requests.post(url=URL, data=DATA)
+    print(post_request.text)
+
+
+
+test_game_resource_post(1234)
+
+# if __name__ == '__main__':
+#     #test_game_resource_post()
+#     main()
