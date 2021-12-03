@@ -26,7 +26,7 @@ class Game(Resource):
     def delete(self, game_ID):
         try:
             del games[game_ID]
-            return Response(status=205, response="Game has been deleted.")
+            return Response(status=205, response="Your game has been deleted.")
         except KeyError:
             return Response(status=404, response="Cannot delete game because it does not exist.")
 
