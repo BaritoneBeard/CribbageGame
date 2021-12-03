@@ -31,8 +31,30 @@ class Game(Resource):
             return Response(status=404, response="Cannot delete game because it does not exist.")
 
 
-api_instance.add_resource(Game, '/games/<int:game_ID>')
+class Player(Resource):
+    def post(self, player_name, game_ID):  # game_ID added to make add_resource work correctly.
+        try:
+            players[player_name] = request.form['player']
+            return Response(status=201, response="Successfully created a player.")
+        except KeyError:
+            return Response(status=409, response="Unable to create a new player at this time.")
 
+    def get(self, player_name, game_ID):
+        try:
+            return Response(status=200, response=players[player_name])
+        except:
+            return Response(status=404, response="The player you are looking for cannot be found.")
+
+    def delete(self, player_name, game_ID):
+        try:
+            del players[player_name]
+            return Response(status=205, response="Player has been deleted from the game.")
+        except KeyError:
+            return Response(status=404, response="Cannot delete player because it does not exist.")
+
+
+api_instance.add_resource(Game, '/games/<int:game_ID>')
+api_instance.add_resource(Player, '/games/<int:game_ID>/<string:player_name>')
 
 if __name__ == '__main__':
     flask_instance.run(debug=True)
