@@ -32,7 +32,7 @@ class Game(Resource):
 
 
 class Player(Resource):
-    def post(self, player_name, game_ID):  # game_ID added to make add_resource work correctly.
+    def post(self, player_name, game_ID):  # game_ID needed to make add_resource method work
         try:
             players[player_name] = request.form['player']
             return Response(status=201, response="Successfully created a player.")
@@ -54,8 +54,31 @@ class Player(Resource):
             return Response(status=404, response="Cannot delete player because it does not exist.")
 
 
+class Hand(Resource):
+    def post(self, hand_ID, player_name, game_ID):  # player_name and game_ID needed to make add_resource method work
+        try:
+            hands[hand_ID] = request.form['hand_ID']
+            return Response(status=201, response="Successfully created a a hand for player.")
+        except KeyError:
+            return Response(status=409, response="Unable to create a new hand for player at this time.")
+
+    def get(self, hand_ID, player_name, game_ID):
+        try:
+            return Response(status=200, response=hands[hand_ID])
+        except:
+            return Response(status=404, response="The hand you want to retrieve cannot be found.")
+
+    def delete(self, hand_ID, player_name, game_ID):
+        try:
+            del hands[hand_ID]
+            return Response(status=205, response="This hand has been deleted from the game.")
+        except KeyError:
+            return Response(status=404, response="Cannot delete this hand because it does not exist.")
+
+
 api_instance.add_resource(Game, '/games/<int:game_ID>')
 api_instance.add_resource(Player, '/games/<int:game_ID>/<string:player_name>')
+api_instance.add_resource(Hand, '/games/<int:game_ID>/<string:player_name>/<int:hand_ID>')
 
 if __name__ == '__main__':
     flask_instance.run(debug=True)

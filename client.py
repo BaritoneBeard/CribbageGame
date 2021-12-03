@@ -52,17 +52,22 @@ def test_player_resource_delete(player_name, game_ID):
 
 def testing_grounds():
     sample_game = Game(123)
+    sample_hand = Hand(['2H', 'KD'], ['AS', '7C'])
+    sample_player = Player(sample_hand, True, False, 'tyler')
+
     test_game_resource_post(sample_game, sample_game.game_ID)
     test_game_resource_get(sample_game.game_ID)
     test_game_resource_delete(sample_game.game_ID)
 
     print()
 
-    sample_hand = Hand(['2H', 'KD'], ['AS', '7C'])
-    sample_player = Player(sample_hand, True, False, 'tyler')
     test_player_resource_post(sample_player, sample_game.game_ID)
     test_player_resource_get(sample_player.player_name, sample_game.game_ID)
     test_player_resource_delete(sample_player.player_name, sample_game.game_ID)
+
+    print()
+
+
 
 
 class Game:
