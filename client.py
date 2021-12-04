@@ -3,6 +3,7 @@ import requests
 import logging
 import json
 from Hand import Hand
+from Move import Move
 
 
 base_url = 'http://127.0.0.1:5000/'
@@ -12,9 +13,7 @@ def test_game_resource_post(game_obj, game_id):
     URL = base_url + 'games/' + str(game_id)
     DATA = {'game_ID': game_obj}
     post_request = requests.post(url=URL, data=DATA)
-    # post_info = json.loads(post_request.text)
-    # print("Regular post_request text: ", post_request.text)
-    # print("Converted Json info: ", post_info)
+    print(post_request.text)
 
 
 def test_game_resource_get(game_id):
@@ -67,10 +66,30 @@ def test_hand_resource_delete(hand_id, player_name, game_id):
     print(hand_delete_request.text)
 
 
+def test_move_resource_post(player_move, player_name, game_id):
+    URL = base_url + 'games/' + str(game_id) + '/' + player_name + '/moves/' + str(player_move.move_id)
+    DATA = {'player_move': player_move}
+    move_post_request = requests.post(url=URL, data=DATA)
+    print(move_post_request.text)
+
+
+def test_move_resource_get(player_move, player_name, game_id):
+    URL = base_url + 'games/' + str(game_id) + '/' + player_name + '/moves/' + str(player_move.move_id)
+    move_get_request = requests.get(url=URL)
+    print(move_get_request.text)
+
+
+def test_move_resource_delete(player_move, player_name, game_id):
+    URL = base_url + 'games/' + str(game_id) + '/' + player_name + '/moves/' + str(player_move.move_id)
+    move_delete_request = requests.delete(url=URL)
+    print(move_delete_request.text)
+
+
 def testing_grounds():
     sample_game = Game(123)  # the game_ID will be randomly generated and stored on the backend when the user requests to start a new game.
     sample_hand = Hand(3935, ['2H', 'KD'], ['AS', '7C'])  # the hand_ID should be randomly generated and stored. Perhaps Player class can keep a list of unique hand_IDs
     sample_player = Player(sample_hand, True, False, 'tyler')
+    sample_move = Move(['JS', '4H'], '3D', 999)  # list of previous moves + our move we want to perform.
 
     test_game_resource_post(sample_game, sample_game.game_id)
     test_game_resource_get(sample_game.game_id)
@@ -87,6 +106,13 @@ def testing_grounds():
     test_hand_resource_post(sample_hand, sample_player.player_name, sample_game.game_id)
     test_hand_resource_get(sample_hand.hand_id, sample_player.player_name, sample_game.game_id)
     test_hand_resource_delete(sample_hand.hand_id, sample_player.player_name, sample_game.game_id)
+
+    print()
+
+    test_move_resource_post(sample_move, sample_player.player_name, sample_game.game_id)
+    test_move_resource_get(sample_move, sample_player.player_name, sample_game.game_id)
+    test_move_resource_delete(sample_move, sample_player.player_name, sample_game.game_id)
+
 
 
 class Game:
