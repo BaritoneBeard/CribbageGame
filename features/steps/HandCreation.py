@@ -28,8 +28,8 @@ def step_impl(context):
 
 @step('I can view my hand')
 def step_impl(context):     # Admittedly this is a silly thing to test, so I just had fun with it instead of deleting.
-    capture = io.StringIO()         # Create StringIO object
-    sys.stdout = capture            # Redirect stdout.
+    capture = io.StringIO()  # Create StringIO object
+    sys.stdout = capture  # and redirect stdout.
     p1_hand.display_hand()
     sys.stdout = sys.__stdout__
     assert capture == p1_hand.display_hand()
