@@ -11,12 +11,13 @@ The crib belongs to the dealer, but these cards are not exposed or used until af
 # for pegging round.
 
 class Crib:
-    def __init__(self, hand: Hand, display=0):
+    def __init__(self, hand: Hand, crib_id = 0, display=False):
         self.hand = hand
+        self.crib_id = crib_id
         self.display = display
 
-    def display_crib(self):  # if display is 1, cards can be added to hand.
-        self.display = 1
+    def display_crib(self):  # Not sure if this boolean will be needed, but might as well have a check.
+        self.display = True
         self.hand.display_hand()
 
     def grab_cards(self):
