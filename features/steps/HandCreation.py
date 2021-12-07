@@ -8,7 +8,7 @@ card = Card.Card(7, "Diamonds")
 card2 = Card.Card(8, "Club")
 card3 = Card.Card(13, "Diamonds")
 card_list = [card,card2]
-p1_hand = Hand.Hand(card_list)
+p1_hand = Hand.Hand(card_list=card_list)
 
 @given('I have a hand object')
 def step_impl(context):
