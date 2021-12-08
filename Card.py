@@ -23,8 +23,8 @@ class Card:
         # self.suit = suit
         # self.name = name
 
-    def print_card(self):
-        print(rank_list[self.rank], "of", self.suit)
+    def print_card(self, ending = '\n'):
+        print(rank_list[self.rank], "of", self.suit, end=ending)
 
 
 

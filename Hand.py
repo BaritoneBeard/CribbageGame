@@ -7,9 +7,9 @@ class Hand:
         self.cards_on_table = cards_on_table  # cards_on_table might not be needed if crib gets added to hand
         self.hand_id = hand_id   # Used to track which hands belong to which players.
 
-    def display_hand(self):
+    def display_hand(self, ending = '\n'):
         for card in self.card_list:
-            card.print_card()
+            card.print_card(ending=ending)
 
     def add_card(self, card: Card):
         self.card_list.append(Card)
