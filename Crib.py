@@ -1,4 +1,5 @@
 import Hand
+import Card
 
 '''
 Each player looks at their six cards and "lays away" two of them face down to reduce the hand to four. 
@@ -20,5 +21,5 @@ class Crib:
         self.display = True
         self.hand.display_hand()
 
-    def grab_cards(self):
+    def grab_cards(self, card1:Card, card2:Card):
         pass  # implement when player class is completed
