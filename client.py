@@ -4,7 +4,7 @@ import logging
 import json
 from Hand import Hand
 from Move import Move
-
+from json_converter import Convert
 
 base_url = 'http://127.0.0.1:5000/'
 
@@ -86,39 +86,45 @@ def test_move_resource_delete(player_move, player_name, game_id):
 
 
 def testing_grounds():
-    sample_game = Game(123)  # the game_ID will be randomly generated and stored on the backend when the user requests to start a new game.
+    sample_game = Game(9876)  # the game_ID will be randomly generated and stored on the backend when the user requests to start a new game.
+    sample_game2 = Convert(sample_game.game_id)
+    mmk = sample_game2.to_json()
+    print(mmk)
+
+
+
     sample_hand = Hand(3935, ['2H', 'KD'], ['AS', '7C'])  # the hand_ID should be randomly generated and stored. Perhaps Player class can keep a list of unique hand_IDs
     sample_player = Player(sample_hand, True, False, 'tyler')
     sample_move = Move(['JS', '4H'], '3D', 999)  # list of previous moves + our move we want to perform.
 
     test_game_resource_post(sample_game, sample_game.game_id)
     test_game_resource_get(sample_game.game_id)
-    test_game_resource_delete(sample_game.game_id)
-
-    print()
-
-    test_player_resource_post(sample_player, sample_game.game_id)
-    test_player_resource_get(sample_player.player_name, sample_game.game_id)
-    test_player_resource_delete(sample_player.player_name, sample_game.game_id)
-
-    print()
-
-    test_hand_resource_post(sample_hand, sample_player.player_name, sample_game.game_id)
-    test_hand_resource_get(sample_hand.hand_id, sample_player.player_name, sample_game.game_id)
-    test_hand_resource_delete(sample_hand.hand_id, sample_player.player_name, sample_game.game_id)
-
-    print()
-
-    test_move_resource_post(sample_move, sample_player.player_name, sample_game.game_id)
-    test_move_resource_get(sample_move, sample_player.player_name, sample_game.game_id)
-    test_move_resource_delete(sample_move, sample_player.player_name, sample_game.game_id)
+    # test_game_resource_delete(sample_game.game_id)
+    #
+    # print()
+    #
+    # test_player_resource_post(sample_player, sample_game.game_id)
+    # test_player_resource_get(sample_player.player_name, sample_game.game_id)
+    # test_player_resource_delete(sample_player.player_name, sample_game.game_id)
+    #
+    # print()
+    #
+    # test_hand_resource_post(sample_hand, sample_player.player_name, sample_game.game_id)
+    # test_hand_resource_get(sample_hand.hand_id, sample_player.player_name, sample_game.game_id)
+    # test_hand_resource_delete(sample_hand.hand_id, sample_player.player_name, sample_game.game_id)
+    #
+    # print()
+    #
+    # test_move_resource_post(sample_move, sample_player.player_name, sample_game.game_id)
+    # test_move_resource_get(sample_move, sample_player.player_name, sample_game.game_id)
+    # test_move_resource_delete(sample_move, sample_player.player_name, sample_game.game_id)
 
 
 
 class Game:
     def __init__(self, game_id):
-        self.player_1 = Player
-        self.player_2 = Player
+        #self.player_1 = Player()
+        #self.player_2 = Player()
         self.game_id = game_id
 
 

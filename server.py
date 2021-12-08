@@ -35,7 +35,6 @@ class Game(Resource):
     def get(self, game_id):
         try:
             logger.info("INFO: Game Resource retrieved successfully.")
-            print("Game object??: " + games[game_id])
             return Response(status=200, response=games[game_id]) # Using game_ID to get the game object.
         except KeyError:
             logger.error("ERROR: KeyError exception encountered with Game Resource GET call.")
