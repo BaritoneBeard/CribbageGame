@@ -14,21 +14,19 @@ deck_info = json.loads(get_req.text) # takes the json string and converts it int
 delete_req = requests.delete(url+deckname)
 
 class Card:
-    def __init__(self, which_card):
+    def __init__(self, rank, suit):
         # for each card dict, grab rank, suit and name
-        self.rank = deck_info[which_card]["rank"]
-        self.suit = deck_info[which_card]["suit"]
-        self.name = deck_info[which_card]["name"]
-        # self.rank = rank
-        # self.suit = suit
+        # self.rank = deck_info[which_card]["rank"]
+        # self.suit = deck_info[which_card]["suit"]
+        # self.name = deck_info[which_card]["name"]
+        self.rank = rank
+        self.suit = suit
         # self.name = name
 
-    def print_card(self, ending = '\n'):
-        print(rank_list[self.rank], "of", self.suit, end=ending)
+    def print_card(self):
+        print(rank_list[self.rank], "of", self.suit)
 
 
-
-
-# def make_card(card_dict: dict):
-#     card = Card(card_dict['rank'], card_dict['suit'])
-#     return card
+def make_card(card_dict: dict):
+    card = Card(card_dict['rank'], card_dict['suit'])
+    return card

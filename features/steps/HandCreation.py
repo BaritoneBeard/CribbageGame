@@ -26,13 +26,5 @@ def step_impl(context):
     assert card2 not in p1_hand.card_list
     assert len(p1_hand.card_list) == 2
 
-@step('I can view my hand')
-def step_impl(context):     # Admittedly this is a silly thing to test, so I just had fun with it instead of deleting.
-    capture = io.StringIO()  # Create StringIO object
-    sys.stdout = capture  # and redirect stdout.
-    p1_hand.display_hand()
-    sys.stdout = sys.__stdout__
-    assert capture == p1_hand.display_hand()
-
 
 

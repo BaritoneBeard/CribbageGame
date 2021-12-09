@@ -12,7 +12,7 @@ The crib belongs to the dealer, but these cards are not exposed or used until af
 # for pegging round.
 
 class Crib:
-    def __init__(self, hand: Hand, crib_id = 0, display=False):
+    def __init__(self, hand: Hand, crib_id=0, display=False):
         self.hand = hand
         self.crib_id = crib_id
         self.display = display
@@ -21,5 +21,6 @@ class Crib:
         self.display = True
         self.hand.display_hand()
 
-    def grab_cards(self, card1:Card, card2:Card):
-        pass  # implement when player class is completed
+    def grab_cards(self, card1: Card, card2: Card):
+        self.hand.Hand.add_card(card1)
+        self.hand.Hand.add_card(card2)

@@ -6,6 +6,11 @@ import Card
 url = 'http://pcms.game-host.org:8543/'
 deckname = 'decks/tdn'
 
+post_req = requests.post(url+deckname)
+get_req = requests.get(url+deckname+'/cards/6')
+deck_info = json.loads(get_req.text) # takes the json string and converts it into a python DS
+delete_req = requests.delete(url+deckname)
+
 @given('I have a dictionary of card rank and suit')
 def step_impl(context):
     requests.post(url + deckname)

@@ -1,8 +1,11 @@
 import requests
+import json
 from behave import *
+
 
 url = 'http://pcms.game-host.org:8543/'
 deckname = 'decks/tdn'
+
 
 @given('The server is up')
 def step_impl(context):
@@ -26,3 +29,6 @@ def step_impl(context):
 @step('I can delete the deck')
 def step_impl(context):
     r = requests.delete(url + deckname)
+
+
+
