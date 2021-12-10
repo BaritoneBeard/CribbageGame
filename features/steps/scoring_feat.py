@@ -1,5 +1,6 @@
 from behave import *
 from scoring import calc_15, calc_pairs, calc_run, calc_flush, nob
+import Card
 
 @given('I have a list of card ranks')
 def step_impl(context):
@@ -49,6 +50,10 @@ def step_impl(context):
 def step_impl(context):
     rank_list = [3,5,7,11]
     suit_list = ['Diamonds','Hearts','Spades','Clubs']
+    card_list = []
+    for i in range(len(rank_list)):
+        card = Card.Card(rank_list[i],suit_list[i])
+        card_list.append(card)
     flipped_suit = 'Diamonds'                           # Jack of Clubs != <Rank> of Diamonds
     assert nob(rank_list,suit_list,flipped_suit) == 0
     flipped_suit = 'Clubs'                              # Jack of Clubs == <Rank> of Clubs

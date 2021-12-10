@@ -146,15 +146,15 @@ def go():
 '''
 
 
-def calc_score(dictionary_list: list, flipped_card: dict, player: int):
+def calc_score(list_of_cards:list, flipped_card: dict, player: int):
     score = 0
     rank_list = []
     suit_list = []
     # flipped_rank = flipped_card['rank']
     flipped_suit = flipped_card['suit']
-    for i in range(len(dictionary_list)):
-        rank_list.append(dictionary_list[i]['rank'])
-        suit_list.append(dictionary_list[i]['suit'])
+    for i in range(len(list_of_cards)):
+        rank_list.append(list_of_cards[i].rank)
+        suit_list.append(list_of_cards[i].suit)
 
     print(rank_list)
     print(suit_list, "\n")
