@@ -3,6 +3,7 @@ import requests
 import logging
 import json
 from Player import Player
+from Hand import Hand
 
 base_url = 'http://127.0.0.1:5000/'
 
@@ -56,10 +57,10 @@ def test_player_resource_delete(player_name, game_id):
 
 
 
-# TODO: Hand and Move still need to be changed to conform with the new json way of setting up the server.
-def test_hand_resource_post(hand_obj, player_name, game_id):
-    URL = base_url + 'games/' + str(game_id) + '/' + player_name + '/hand/' + str(hand_obj.hand_id)
-    DATA = {'hand_ID': hand_obj}
+def test_hand_resource_post(hand_json_string, player_name, game_id):
+    hand_dict = json.loads(hand_json_string)
+    URL = base_url + 'games/' + str(game_id) + '/' + player_name + '/hand/' + str(hand_dict["hand_id"])
+    DATA = {'hand_info': hand_json_string}
     hand_post_request = requests.post(url=URL, data=DATA)
     print(hand_post_request.text)
 
@@ -67,7 +68,8 @@ def test_hand_resource_post(hand_obj, player_name, game_id):
 def test_hand_resource_get(hand_id, player_name, game_id):
     URL = base_url + 'games/' + str(game_id) + '/' + player_name + '/hand/' + str(hand_id)
     hand_get_request = requests.get(url=URL)
-    print(hand_get_request.text)
+    hand_dict = json.loads(hand_get_request.text)
+    print("Hand information: ", hand_dict)
 
 
 def test_hand_resource_delete(hand_id, player_name, game_id):
@@ -79,7 +81,7 @@ def test_hand_resource_delete(hand_id, player_name, game_id):
 
 
 
-
+# TODO: Move still need to be changed to conform with the new json way of setting up the server - might not need it.
 def test_move_resource_post(player_move, player_name, game_id):
     URL = base_url + 'games/' + str(game_id) + '/' + player_name + '/moves/' + str(player_move.move_id)
     DATA = {'player_move': player_move}
@@ -109,49 +111,29 @@ def testing_grounds():
     sample_game = Game(game_id, game_string_test)
 
     game_dict = {"game_id": sample_game.game_id, "game_string_test": sample_game.game_string}
-    json_string = json.dumps(game_dict) # dumps game_dict into a json string
+    game_json_string = json.dumps(game_dict) # dumps game_dict into a json string
 
-    test_game_resource_post(json_string)
+    test_game_resource_post(game_json_string)
     test_game_resource_get(game_dict["game_id"])
     #test_game_resource_delete(game_dict["game_id"])
 
     my_player = Player(['2H', 'KD'], False, True, 'tyler')
     player_dict = {"hand": my_player.hand, "crib_turn": my_player.crib_turn, "turn": my_player.turn,
                    "name": my_player.name, "score": 0} # do we need score
+    player_json_string = json.dumps(player_dict) # creates a json string for player attributes.
 
-    player_json = json.dumps(player_dict) # creates a json string for player attributes.
-
-    test_player_resource_post(player_json, game_dict["game_id"])
+    test_player_resource_post(player_json_string, game_dict["game_id"])
     test_player_resource_get(player_dict["name"], game_dict["game_id"])
-    test_player_resource_delete(player_dict["name"], game_dict["game_id"])
+    #test_player_resource_delete(player_dict["name"], game_dict["game_id"])
 
+    print()
+    my_hand = Hand(9900, ['2S', '7C'], ['3D', '5H'])
+    hand_dict = {"hand_id": my_hand.hand_id, "card_list": my_hand.card_list, "cards_on_table": my_hand.cards_on_table}
+    hand_json_string = json.dumps(hand_dict)
 
-    # sample_hand = Hand(3935, ['2H', 'KD'], ['AS', '7C'])  # the hand_ID should be randomly generated and stored. Perhaps Player class can keep a list of unique hand_IDs
-    # sample_player = Player(sample_hand, True, False, 'tyler')
-    # sample_move = Move(['JS', '4H'], '3D', 999)  # list of previous moves + our move we want to perform.
-
-    # test_game_resource_post(sample_game, sample_game.game_id)
-    # test_game_resource_get(sample_game.game_id)
-    # test_game_resource_delete(sample_game.game_id)
-    #
-    # print()
-    #
-    # test_player_resource_post(sample_player, sample_game.game_id)
-    # test_player_resource_get(sample_player.player_name, sample_game.game_id)
-    # test_player_resource_delete(sample_player.player_name, sample_game.game_id)
-    #
-    # print()
-    #
-    # test_hand_resource_post(sample_hand, sample_player.player_name, sample_game.game_id)
-    # test_hand_resource_get(sample_hand.hand_id, sample_player.player_name, sample_game.game_id)
-    # test_hand_resource_delete(sample_hand.hand_id, sample_player.player_name, sample_game.game_id)
-    #
-    # print()
-    #
-    # test_move_resource_post(sample_move, sample_player.player_name, sample_game.game_id)
-    # test_move_resource_get(sample_move, sample_player.player_name, sample_game.game_id)
-    # test_move_resource_delete(sample_move, sample_player.player_name, sample_game.game_id)
-
+    test_hand_resource_post(hand_json_string, player_dict["name"], game_dict["game_id"])
+    test_hand_resource_get(hand_dict["hand_id"], player_dict["name"], game_dict["game_id"])
+    test_hand_resource_delete(hand_dict["hand_id"], player_dict["name"], game_dict["game_id"])
 
 
 # NOTE: Anything besides game_id is just a TESTING VARIABLE. IT WILL NOT GO INTO THE FINAL IMPLEMENTATION.

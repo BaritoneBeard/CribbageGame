@@ -26,9 +26,8 @@ moves = {} # holds move resources for players
 class Game(Resource):
     def post(self, game_id):
         try:
-            req = request.form['game_info'] # a json string
-            req = json.loads(req) # take a json string and load it into a python dictionary.
-            games[game_id] = req # We are storing the python dictionary into our games, so we can access it.
+            req = request.form['game_info']  # a json string
+            games[game_id] = json.loads(req)  # Load json string into a python dict and store it
             logger.info("INFO: Game Resource posted successfully.")
             return Response(status=201, response="Successfully created the game.")
 
@@ -81,18 +80,20 @@ class Player(Resource):
 
 
 
-'''
+
 class Hand(Resource):
     def post(self, hand_id, player_name, game_id):  # player_name and game_ID needed to make add_resource method work
         try:
-            hands[hand_id] = request.form['hand_ID']
+            req = request.form['hand_info']
+            hands[hand_id] = json.loads(req)
             return Response(status=201, response="Successfully created a hand for player: " + player_name)
         except KeyError:
             return Response(status=409, response="Unable to create a new hand for player at this time.")
 
     def get(self, hand_id, player_name, game_id):
         try:
-            return Response(status=200, response=hands[hand_id])
+            return make_response(jsonify(hands[hand_id]), 200)
+            #return Response(status=200, response=hands[hand_id])
         except:
             return Response(status=404, response="The hand you want to retrieve cannot be found.")
 
@@ -103,7 +104,7 @@ class Hand(Resource):
         except KeyError:
             return Response(status=404, response="Cannot delete this hand because it does not exist.")
 
-
+'''
 # Come back to this - might not need it with the implementation
 class Move(Resource):
     def post(self, move_id, player_name, game_id):
@@ -129,7 +130,7 @@ class Move(Resource):
 
 api_instance.add_resource(Game, '/games/<int:game_id>')
 api_instance.add_resource(Player, '/games/<int:game_id>/<string:player_name>')
-#api_instance.add_resource(Hand, '/games/<int:game_id>/<string:player_name>/hand/<int:hand_id>')
+api_instance.add_resource(Hand, '/games/<int:game_id>/<string:player_name>/hand/<int:hand_id>')
 
 #api_instance.add_resource(Move, '/games/<int:game_id>/<string:player_name>/moves/<int:move_id>')
 
