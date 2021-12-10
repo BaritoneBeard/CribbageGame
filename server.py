@@ -3,7 +3,6 @@ import json
 from flask import Flask, request, Response, jsonify, make_response
 from flask_restful import Resource, Api
 import logging
-from json_converter import JSONGame
 
 
 
@@ -22,18 +21,6 @@ games = {}  # holds game resources
 players = {}  # holds player resources
 hands = {}  # holds hand resources for players
 moves = {} # holds move resources for players
-
-
-'''
-I know what to do now. request.form only gets 1 item, so I need to use separate request.forms to get all the info I need
-Then put that in a dictionary. Then store that in my games[game_id]. In get, instead of a Response return, I'll need to
-do something like: return games[game_id], 200. This will indeed return a dictionary.
-
-But wait, isn't a dictionary a class? How can I send it over to the server from the client if it is an object.
-If this is the case, I'll have to resort using json to convert my dictionary into a string, passing the string over http
-then deserializing it here on the server.
-
-'''
 
 
 class Game(Resource):
