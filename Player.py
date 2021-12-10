@@ -13,11 +13,12 @@ crib = Crib([])
 
 # Frontend Class
 class Player:
-    def __init__(self, player_hand, crib_turn, turn):
+    def __init__(self, player_hand, crib_turn, turn, name):
         self.hand = player_hand  # Since Hand is on FE with player, no need to call API
         self.score = 0  # 0 for a player just starting out.
         self.crib_turn = crib_turn
         self.turn = turn
+        self.name = name
 
     # returns a list of the cards in the player's hand in dictionary form (rank, suit and name)
     # TODO maybe refactor later? it'll return a list of cards when done

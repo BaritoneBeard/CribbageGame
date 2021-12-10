@@ -2,24 +2,26 @@ import os  # is this included in base python? attempting to install throws error
 import requests
 import logging
 import json
-from Hand import Hand
-from Move import Move
-from json_converter import Convert
+from Player import Player
 
 base_url = 'http://127.0.0.1:5000/'
 
 
-def test_game_resource_post(game_obj, game_id):
-    URL = base_url + 'games/' + str(game_id)
-    DATA = {'game_ID': game_obj}
+
+
+# pass in a json string, extract the game_id from it, pass in the json string as the data to be stored on the server
+def test_game_resource_post(game_json_string):
+    game_dict = json.loads(game_json_string) # now this is a dictionary and I can access the game_id
+    URL = base_url + 'games/' + str(game_dict["game_id"])
+    DATA = {"game_info": game_json_string}
     post_request = requests.post(url=URL, data=DATA)
-    print(post_request.text)
 
 
 def test_game_resource_get(game_id):
     URL = base_url + 'games/' + str(game_id)
     get_request = requests.get(url=URL)
-    print(get_request.text)
+    game_dict = json.loads(get_request.text)
+    print(game_dict)
 
 
 def test_game_resource_delete(game_id):
@@ -28,17 +30,21 @@ def test_game_resource_delete(game_id):
     print(delete_request.text)
 
 
-def test_player_resource_post(player_obj, game_id):  # specify the game_ID the player is a part of.
-    URL = base_url + 'games/' + str(game_id) + '/' + player_obj.player_name
-    DATA = {'player': player_obj}
+
+
+
+def test_player_resource_post(player_json_string, game_id):  # specify the game_ID the player is a part of.
+    player_dict = json.loads(player_json_string)
+    URL = base_url + 'games/' + str(game_id) + '/' + player_dict["name"]
+    DATA = {'player_info': player_json_string}
     player_post_request = requests.post(url=URL, data=DATA)
-    print(player_post_request.text)
 
 
 def test_player_resource_get(player_name, game_id):
     URL = base_url + 'games/' + str(game_id) + '/' + player_name
     player_get_request = requests.get(url=URL)
-    print(player_get_request.text)
+    player_dict = json.loads(player_get_request.text)
+    print("player dictionary:", player_dict)
 
 
 def test_player_resource_delete(player_name, game_id):
@@ -47,6 +53,10 @@ def test_player_resource_delete(player_name, game_id):
     print(player_delete_request.text)
 
 
+
+
+
+# TODO: Hand and Move still need to be changed to conform with the new json way of setting up the server.
 def test_hand_resource_post(hand_obj, player_name, game_id):
     URL = base_url + 'games/' + str(game_id) + '/' + player_name + '/hand/' + str(hand_obj.hand_id)
     DATA = {'hand_ID': hand_obj}
@@ -64,6 +74,10 @@ def test_hand_resource_delete(hand_id, player_name, game_id):
     URL = base_url + 'games/' + str(game_id) + '/' + player_name + '/hand/' + str(hand_id)
     hand_delete_request = requests.delete(url=URL)
     print(hand_delete_request.text)
+
+
+
+
 
 
 def test_move_resource_post(player_move, player_name, game_id):
@@ -85,20 +99,39 @@ def test_move_resource_delete(player_move, player_name, game_id):
     print(move_delete_request.text)
 
 
+
+
+
+
 def testing_grounds():
-    sample_game = Game(9876)  # the game_ID will be randomly generated and stored on the backend when the user requests to start a new game.
-    sample_game2 = Convert(sample_game.game_id)
-    mmk = sample_game2.to_json()
-    print(mmk)
+    game_id = 6886
+    game_string_test = "This is my game string"
+    sample_game = Game(game_id, game_string_test)
+
+    game_dict = {"game_id": sample_game.game_id, "game_string_test": sample_game.game_string}
+    json_string = json.dumps(game_dict) # dumps game_dict into a json string
+
+    test_game_resource_post(json_string)
+    test_game_resource_get(game_dict["game_id"])
+    #test_game_resource_delete(game_dict["game_id"])
+
+    my_player = Player(['2H', 'KD'], False, True, 'tyler')
+    player_dict = {"hand": my_player.hand, "crib_turn": my_player.crib_turn, "turn": my_player.turn,
+                   "name": my_player.name, "score": 0} # do we need score
+
+    player_json = json.dumps(player_dict) # creates a json string for player attributes.
+
+    test_player_resource_post(player_json, game_dict["game_id"])
+    test_player_resource_get(player_dict["name"], game_dict["game_id"])
+    test_player_resource_delete(player_dict["name"], game_dict["game_id"])
 
 
+    # sample_hand = Hand(3935, ['2H', 'KD'], ['AS', '7C'])  # the hand_ID should be randomly generated and stored. Perhaps Player class can keep a list of unique hand_IDs
+    # sample_player = Player(sample_hand, True, False, 'tyler')
+    # sample_move = Move(['JS', '4H'], '3D', 999)  # list of previous moves + our move we want to perform.
 
-    sample_hand = Hand(3935, ['2H', 'KD'], ['AS', '7C'])  # the hand_ID should be randomly generated and stored. Perhaps Player class can keep a list of unique hand_IDs
-    sample_player = Player(sample_hand, True, False, 'tyler')
-    sample_move = Move(['JS', '4H'], '3D', 999)  # list of previous moves + our move we want to perform.
-
-    test_game_resource_post(sample_game, sample_game.game_id)
-    test_game_resource_get(sample_game.game_id)
+    # test_game_resource_post(sample_game, sample_game.game_id)
+    # test_game_resource_get(sample_game.game_id)
     # test_game_resource_delete(sample_game.game_id)
     #
     # print()
@@ -121,20 +154,16 @@ def testing_grounds():
 
 
 
+# NOTE: Anything besides game_id is just a TESTING VARIABLE. IT WILL NOT GO INTO THE FINAL IMPLEMENTATION.
 class Game:
-    def __init__(self, game_id):
+    def __init__(self, game_id, game_string):
         #self.player_1 = Player()
         #self.player_2 = Player()
         self.game_id = game_id
+        self.game_string = game_string
 
 
-class Player:
-    def __init__(self, hand, turn, crib_turn, name):
-        self.hand = hand
-        self.score = 0
-        self.turn = turn
-        self.crib_turn = crib_turn
-        self.player_name = name
+
 
 
 testing_grounds()
