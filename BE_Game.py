@@ -1,23 +1,29 @@
 import json
 import random
-
+from Player_BE import Player_BE
 import requests
 
 deck_and_card_url = 'http://pcms.game-host.org:8543/'
 deckname = 'decks/bgame'
 localhost_url = 'http://127.0.0.1:5000/'  # Will change once we upload to Dave's server.
+game_id_list = []
+hand_id_list = []
 
+# Other BE classes like scoring and pegging can call to BE_Game and access its players for scores, turns, etc.
 
 # Assume 2 players in game for now.
 class BE_Game:
     def __init__(self, game_id):
         self.game_id = game_id
         self.game_deck = requests.post(deck_and_card_url+deckname)  # Need game_id so you can create the game
-        self.player_1 = self.create_player()  # Need to create player class to create player objects like with Card.py?
+        self.player_1 = self.create_player()  # Player "object" we've created from info on json string from server.
         self.player_2 = self.create_player()
-        #self.dealer = self.assign_initial_dealer()  # need players before we can assign dealer
-
-
+        self.player_3 = None
+        self.player_4 = None
+        self.dealer = self.assign_initial_dealer()  # need players before we can assign dealer
+        self.assign_crib_and_turn()
+        self.starter_card = json.loads(requests.get(deck_and_card_url+deckname+'/cards/1').text)[0]
+        print("Starting card: ", self.starter_card)
 
     def create_hand(self):
         list_of_cards = []  # list of card dictionaries.
@@ -34,28 +40,33 @@ class BE_Game:
         hand_dict = {"hand_id": create_random_hand_id(), "card_list": list_of_cards, "cards_on_table": []}
         cards_json_string = json.dumps(hand_dict)  # makes the dictionary of cards into a json string that we pass to the server.
 
-        create_hand_player_1 = requests.post(
+        # TODO: Make BE Card objects using Card.py similar to Player_BE.py?
+
+        create_hand_for_player = requests.post(
             url=localhost_url + 'games/' + str(10101) + '/hands/' + str(hand_dict["hand_id"]),
             data={'hand_info': cards_json_string})
 
-        player_1_hand_info = requests.get(
+        player_hand_info = requests.get(
             url=localhost_url + 'games/' + str(10101) + '/hands/' + str(hand_dict["hand_id"])).text
 
-        print("Hand: ", json.loads(player_1_hand_info))
+        print("Hand: ", json.loads(player_hand_info))
+        return json.loads((player_hand_info))
 
 
     def create_player(self):
         # Create the Player using the Hand created above.
-        # TODO: assign crib_turn, turn based on dealer attribute.
-        player_dict = {"hand": self.create_hand(), "crib_turn": False, "turn": True, "score": 0, "name": "tyler"}
+        # crib_turn and turn will get sorted out once assign_crib_and_turn is called in constructor
+        player_dict = {"hand": self.create_hand(), "crib_turn": False, "turn": False, "score": 0, "name": "tyler"}
         player_json_string = json.dumps(player_dict)
         create_player_1 = requests.post(url=localhost_url + 'games/' + str(10101) + '/players/' + player_dict["name"],
                                         data={'player_info': player_json_string})
 
-        get_player = requests.get(url=localhost_url + 'games/' + str(10101) + '/players/' + player_dict["name"])
-        print()
-        print("Player: ", json.loads(get_player.text))
-        print()
+        # get_player = requests.get(url=localhost_url + 'games/' + str(10101) + '/players/' + player_dict["name"])
+
+        # Got this player information from the server. Create a new player object (for backend only)
+        new_player = Player_BE(player_dict["hand"], player_dict["crib_turn"], player_dict["turn"], player_dict["name"])
+
+        return new_player
 
 
 
@@ -67,19 +78,21 @@ class BE_Game:
         num1 = random.randint(1,13)
         num2 = random.randint(1,13)
         if num1 <= num2:
-            self.dealer = self.player_1
+            return self.player_1
         else:
-            self.dealer = self.player_2
-        print("dealer is: ", self.dealer)
-        return self.dealer
+            return self.player_2
 
-    # Don't think we need this - this happens when we call to get cards from PCMS server
-    def get_player_cards(self):
-        pass
-
-    # Don't think we need this - this happens when we call to get cards from PCMS server
-    def deal_cards(self):
-        pass
+    def assign_crib_and_turn(self):
+        if self.dealer is self.player_1: # new player class is all on backend, so creating objects like this is fine.
+            self.player_1.crib_turn = True
+            self.player_1.turn = False
+            self.player_2.crib_turn = False
+            self.player_2.turn = True
+        else:
+            self.player_1.crib_turn = False
+            self.player_1.turn = True
+            self.player_2.crib_turn = True
+            self.player_2.turn = False
 
     # Need to be able to call send_cards_to_crib method from player - how?
     def get_crib_cards(self):
@@ -94,13 +107,23 @@ class BE_Game:
 # Selects a random number from 1 to 10000, adds it to a global list of hand_id's
 # checks to make sure we haven't used it yet and returns it
 def create_random_hand_id():
-    return random.randint(1, 10000)
+    id = random.randint(1,10000)
+    while True:
+        if id in hand_id_list:
+            id = random.randint(1,10000)
+        else:
+            return id
 
 # Same as hand_id except with game_id's
 def create_random_game_id():
-    return random.randint(1, 10000)
+    id = random.randint(1,10000)
+    while True:
+        if id in game_id_list:
+            id = random.randint(1,10000)
+        else:
+            return id
 
 
-new_game = BE_Game(create_random_game_id())
+new_game = BE_Game(create_random_game_id())  # Create a new game with a random game_id
 requests.delete(deck_and_card_url+deckname)
 
