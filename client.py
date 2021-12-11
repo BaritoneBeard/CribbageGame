@@ -141,7 +141,7 @@ def testing_grounds():
 
     print()
 
-    player_move = Move()
+    #player_move = Move()
 
 
 # NOTE: Anything besides game_id is just a TESTING VARIABLE. IT WILL NOT GO INTO THE FINAL IMPLEMENTATION.

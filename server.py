@@ -15,12 +15,12 @@ logger.setLevel(logging.DEBUG)
 flask_instance = Flask(__name__)
 api_instance = Api(flask_instance)
 
-# Note: No Crib Resource class was added because a crib is just a type of hand, so there is no need for one.
 
 games = {}  # holds game resources
 players = {}  # holds player resources
 hands = {}  # holds hand resources for players
 moves = {} # holds move resources for players
+cribs = {}
 
 
 class Game(Resource):
@@ -117,7 +117,7 @@ class Move(Resource):
 
     def get(self, move_id, player_name, game_id):
         try:
-            return Response(status=200, response=moves[move_id])
+            return make_response(jsonify(moves[move_id]), 200)
         except:
             return Response(status=404, response="The move you want to access cannot be found.")
 
@@ -129,11 +129,37 @@ class Move(Resource):
             return Response(status=404, response="Cannot delete this move because it does not exist.")
 
 
+
+
+# Come back to this - might not need it with the implementation
+class Crib(Resource):
+    def post(self, crib_id, player_name, game_id):
+        try:
+            req = request.form['crib_info']
+            cribs[crib_id] = json.loads(req)
+            return Response(status=201, response="Successfully stored a crib.")
+        except KeyError:
+            return Response(status=409, response="Unable to create a crib at this time.")
+
+    def get(self, crib_id, player_name, game_id):
+        try:
+            return make_response(jsonify(cribs[crib_id]), 200)
+        except:
+            return Response(status=404, response="The crib you want to access cannot be found.")
+
+    def delete(self, crib_id, player_name, game_id):
+        try:
+            del cribs[crib_id]
+            return Response(status=205, response="This crib has been deleted from the game.")
+        except KeyError:
+            return Response(status=404, response="Cannot delete this crib because it does not exist.")
+
+
 api_instance.add_resource(Game, '/games/<int:game_id>')
 api_instance.add_resource(Player, '/games/<int:game_id>/players/<string:player_name>')
 api_instance.add_resource(Hand, '/games/<int:game_id>/hands/<int:hand_id>')
-api_instance.add_resource(Move, '/games/<int:game_id>/<string:player_name>/moves/<int:move_id>')
-
+api_instance.add_resource(Move, '/games/<int:game_id>/players/<string:player_name>/moves/<int:move_id>')
+api_instance.add_resource(Crib, '/games/<int:game_id>/cribs/<int:crib_id>')
 
 
 
