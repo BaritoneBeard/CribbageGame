@@ -22,20 +22,21 @@ then receive_pegging_move(player_move) will call detect_illegal_move(), then cal
 move_id_list = []
 localhost_url = 'http://127.0.0.1:5000/'
 
+
 # Move will just be a Card dict or card object from Card.py
 class Move:
-    def __init__(self, move_id): # had card_list: list
-        self.player = None # TODO: How to set player here
-        self.moves_so_far = []
-        self.move = None  # Will get when we call receive_move
-        self.move_id = move_id # identifies / categorizing the different moves
-        #self.player_list_of_moves = card_list # This doesn't really make sense in the context.
+    def __init__(self, move_id, player=None, moves_so_far=None, move=None):  # had card_list: list
+        self.move_id = move_id  # identifies / categorizing the different moves
+        self.player = player  # TODO: How to set player here
+        self.moves_so_far = moves_so_far
+        self.move = move  # Will get when we call receive_move
+        # self.player_list_of_moves = card_list # This doesn't really make sense in the context.
 
     # Call GET on API server
     # Call to specific game of the player. Then using that game_id, player_name, access the move.
-    def receive_move(self, player_name): # TODO: Pass in info about player?
+    def receive_move(self, player_name):  # TODO: Pass in info about player?
         # How to get game_id here of specific player?
-        URL = localhost_url+'games/' + str(0000) + '/' + player_name + '/moves/' + str(self.move_id)
+        URL = localhost_url + 'games/' + str(0000) + '/' + player_name + '/moves/' + str(self.move_id)
         get_req = requests.get(url=URL)
         get_req = json.loads(get_req.text)[0]  # We get a card_dictionary here
         make_the_move_a_card = make_card(get_req)
@@ -43,17 +44,22 @@ class Move:
         print("Rank of Move: ", self.move.rank)
         print("Suit of Move: ", self.move.suit)
 
+
 def create_random_move_id():
-    id = random.randint(1,10000)
+    id = random.randint(1, 10000)
     while True:
         if id in move_id_list:
-            id = random.randint(1,10000)
+            id = random.randint(1, 10000)
         else:
             return id
 
 
-my_move = Move(create_random_move_id())
-my_move.receive_move('tyler')
+def main():
+    my_move = Move(create_random_move_id())
+    my_move.receive_move('tyler')
+
+if __name__ == '__main__':
+    main()
 
 # Need to modify Player's make_move to send a move over the API. Then in receive_move, we can access it.
 # When testing, be sure to create a new game (BE_Game), then have player_1 in BE_Game call Player's method make_move()
