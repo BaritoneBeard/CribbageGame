@@ -1,12 +1,11 @@
 import requests
 import json
 import itertools
+import Card
 from urllib.error import HTTPError
 
 url = 'http://pcms.game-host.org:8543/'
 deckname = 'decks/tdn'
-p1_score = 0
-p2_score = 0
 
 '''
     Rules referenced:
@@ -101,7 +100,7 @@ def calc_run(card_list: list):
 '''
 
 
-def calc_flush(suit_list: list, flipped_suit: str):
+def calc_flush(suit_list: list, flipped_suit: str = None):
     if len(set(suit_list)) == 1:            # flush of 4
         if flipped_suit == suit_list[0]:    # flush of 5
             return 5
@@ -139,19 +138,19 @@ def go():
     return 1
 
 '''
-    Will MOST LIKELY need refactoring when we move on past the mock.
     Calculates score, calls other calc methods.
     Separates data retrieved from the mock into a list of card ranks and suits.
     This will be what gets called from other files.
 '''
 
 
-def calc_score(list_of_cards:list, flipped_card: dict, player: int):
+def calc_score(list_of_cards:list, flipped_card: Card.Card = None):
     score = 0
     rank_list = []
     suit_list = []
-    # flipped_rank = flipped_card['rank']
-    flipped_suit = flipped_card['suit']
+    flipped_suit = None
+    if flipped_card:
+        flipped_suit = flipped_card.suit
     for i in range(len(list_of_cards)):
         rank_list.append(list_of_cards[i].rank)
         suit_list.append(list_of_cards[i].suit)
@@ -165,9 +164,4 @@ def calc_score(list_of_cards:list, flipped_card: dict, player: int):
     score += calc_flush(suit_list, flipped_suit)
     score += nob(rank_list, suit_list, flipped_suit)
 
-    if player:
-        global p1_score
-        p1_score += score
-    else:
-        global p2_score
-        p2_score += score
+    return score
