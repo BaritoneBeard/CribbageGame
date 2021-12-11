@@ -1,4 +1,5 @@
 import json
+import random
 
 import requests
 
@@ -9,17 +10,23 @@ from Card import Card
 available_letters = ['a', 'b', 'c', 'd', 'e', 'f']
 letter_options = []
 crib = Crib([])
+localhost_url = 'http://127.0.0.1:5000/'  # Will change once we upload to Dave's server.
+
+
 
 
 # Frontend Class
 class Player:
-    def __init__(self, player_hand, crib_turn, turn, name):
+    def __init__(self, player_hand, crib_turn, turn, name, game_id):
         # player_hand is a Hand with its own id, so in a way, it is attached to a specific player
         self.hand = player_hand  # Since Hand is on FE with player, no need to call API
         self.score = 0  # 0 for a player just starting out.
         self.crib_turn = crib_turn
         self.turn = turn
         self.name = name
+        self.game_id = game_id
+        self.moves_done = {}
+
 
     # returns a list of the cards in the player's hand in dictionary form (rank, suit and name)
     # TODO maybe refactor later? it'll return a list of cards when done
@@ -63,6 +70,22 @@ class Player:
             if selection in letter_options:
                 input_return = letter_options.index(selection)  # e.g. "b" has index 1
                 inputted_card = self.hand.card_list[input_return]
+
+
+                # assign a move_id to the card we dealt
+                id = self.create_random_move_id()
+                #self.moves_done[id] = inputted_card
+                move_dict = {"player": self.name, "move_id": id, "move": inputted_card}
+                move_json_string = json.dumps(move_dict)
+
+                # Post the move (card) onto the API - how do I know what game player is a part of?
+                req_post = requests.post(url=localhost_url+'games/'+ str(self.game_id) + '/' + self.name + '/moves/'+
+                                         str(id), data={'move_info': move_json_string})
+
+
+
+
+
                 # peg.total += inputted_card.rank
                 self.hand.remove_card(inputted_card)
             else:
@@ -109,10 +132,20 @@ class Player:
                 print("** Not a valid selection for card 2 **")
 
 
+    def create_random_move_id(self):
+        id = random.randint(1, 10000)
+        while True:
+            if self.moves_done[id] in self.moves_done:
+                id = random.randint(1, 10000)
+            else:
+                return id
+
+
 # This would be a place where we'd call the FE/BE API to get the pegging information (like total) for us.
 class TestPeg:
     def __init__(self):
         self.total = 0
+
 
 
 # The code below is for testing purposes only

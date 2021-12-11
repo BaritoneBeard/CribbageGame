@@ -104,12 +104,13 @@ class Hand(Resource):
         except KeyError:
             return Response(status=404, response="Cannot delete this hand because it does not exist.")
 
-'''
+
 # Come back to this - might not need it with the implementation
 class Move(Resource):
     def post(self, move_id, player_name, game_id):
         try:
-            moves[move_id] = request.form['player_move']
+            req = request.form['move_info']
+            moves[move_id] = json.loads(req)
             return Response(status=201, response="Successfully stored a move for player: " + player_name)
         except KeyError:
             return Response(status=409, response="Unable to process the requested move at this time.")
@@ -126,13 +127,12 @@ class Move(Resource):
             return Response(status=205, response="This move has been deleted from the game.")
         except KeyError:
             return Response(status=404, response="Cannot delete this move because it does not exist.")
-'''
+
 
 api_instance.add_resource(Game, '/games/<int:game_id>')
 api_instance.add_resource(Player, '/games/<int:game_id>/players/<string:player_name>')
 api_instance.add_resource(Hand, '/games/<int:game_id>/hands/<int:hand_id>')
-
-#api_instance.add_resource(Move, '/games/<int:game_id>/<string:player_name>/moves/<int:move_id>')
+api_instance.add_resource(Move, '/games/<int:game_id>/<string:player_name>/moves/<int:move_id>')
 
 
 

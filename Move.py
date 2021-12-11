@@ -1,3 +1,10 @@
+import json
+import random
+
+import requests
+from BE_Game import BE_Game
+from Card import make_card
+
 from Player import Player
 
 '''
@@ -12,27 +19,46 @@ then receive_pegging_move(player_move) will call detect_illegal_move(), then cal
 
 '''
 
-# BACKEND CLASS - use API to access player information, don't just import Player^^^^^^
+move_id_list = []
+localhost_url = 'http://127.0.0.1:5000/'
+
+# Move will just be a Card dict or card object from Card.py
 class Move:
-    def __init__(self, card_list:list, move, move_id):
-        # Each instance of the Move class has a player associated with it and a list of moves it is keeping track of.
-        self.player = Player() # We need to know who made the move.
-        self.move = move # need a string to know which move it is ('5D', KH', etc)
+    def __init__(self, move_id): # had card_list: list
+        self.player = None # TODO: How to set player here
+        self.moves_so_far = []
+        self.move = None  # Will get when we call receive_move
         self.move_id = move_id # identifies / categorizing the different moves
+        #self.player_list_of_moves = card_list # This doesn't really make sense in the context.
 
-        self.player_list_of_moves = card_list # This doesn't really make sense in the context.
+    # Call GET on API server
+    # Call to specific game of the player. Then using that game_id, player_name, access the move.
+    def receive_move(self, player_name): # TODO: Pass in info about player?
+        # How to get game_id here of specific player?
+        URL = localhost_url+'games/' + str(0000) + '/' + player_name + '/moves/' + str(self.move_id)
+        get_req = requests.get(url=URL)
+        get_req = json.loads(get_req.text)[0]  # We get a card_dictionary here
+        make_the_move_a_card = make_card(get_req)
+        self.move = make_the_move_a_card  # gives a Card object with rank and suit.
+        print("Rank of Move: ", self.move.rank)
+        print("Suit of Move: ", self.move.suit)
+
+def create_random_move_id():
+    id = random.randint(1,10000)
+    while True:
+        if id in move_id_list:
+            id = random.randint(1,10000)
+        else:
+            return id
 
 
-# We need a way to bring this to the frontend. Or just have it return the move, thne have the frontend call the function.
-    # Just have it return the move to the frontend, then the frontend can display the move.
+my_move = Move(create_random_move_id())
+my_move.receive_move('tyler')
 
-# Note: display_move() has been removed because that is a job for the frontend. The frontend can call to API to get move, then display it as necesssary.
-
-    # I only need this method. Because display_move should happen on the frontend.
-    # This method can be called to API to obtain a move made by a particular player. Then we can receive this move,
-            # and once we have the move here, we can return in the function. Then other methods on backend can call it
-            # to get the move and do whatever they need to do.
+# Need to modify Player's make_move to send a move over the API. Then in receive_move, we can access it.
+# When testing, be sure to create a new game (BE_Game), then have player_1 in BE_Game call Player's method make_move()
+# You might have to change this later b/c Player make_move() method on FE and BE_Game on backend, but just ignore it
+# make_move() when called, should put a move on the API, then call your receive_move here to get that specific move
 
 
-    def receive_move(self, player_name, player_card):
-        pass
+# Use a specific game_id and player_name for testing purposes

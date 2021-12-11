@@ -139,6 +139,10 @@ def testing_grounds():
     test_player_resource_get(player_dict["name"], game_dict["game_id"])
     #test_player_resource_delete(player_dict["name"], game_dict["game_id"])
 
+    print()
+
+    player_move = Move()
+
 
 # NOTE: Anything besides game_id is just a TESTING VARIABLE. IT WILL NOT GO INTO THE FINAL IMPLEMENTATION.
 class Game:

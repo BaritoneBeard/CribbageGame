@@ -124,6 +124,7 @@ def create_random_game_id():
             return id
 
 
-new_game = BE_Game(create_random_game_id())  # Create a new game with a random game_id
+game_id = create_random_game_id()
+new_game = BE_Game(game_id)  # Create a new game with a random game_id
 requests.delete(deck_and_card_url+deckname)
 
