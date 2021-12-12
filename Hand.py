@@ -12,7 +12,7 @@ class Hand:
             card.print_card()
 
     def add_card(self, card: Card):
-        self.card_list.append(Card)
+        self.card_list.append(card)
 
     def remove_card(self, card: Card = None,  index: int = -1):
         try:

@@ -9,7 +9,7 @@ from Card import Card
 
 available_letters = ['a', 'b', 'c', 'd', 'e', 'f']
 letter_options = []
-crib = Crib([])
+#crib = Crib([])
 localhost_url = 'http://127.0.0.1:5000/'  # Will change once we upload to Dave's server.
 
 
@@ -17,15 +17,14 @@ localhost_url = 'http://127.0.0.1:5000/'  # Will change once we upload to Dave's
 
 # Frontend Class
 class Player:
-    def __init__(self, player_hand, crib_turn, turn, name, game_id):
-        # player_hand is a Hand with its own id, so in a way, it is attached to a specific player
-        self.hand = player_hand  # Since Hand is on FE with player, no need to call API
-        self.score = 0  # 0 for a player just starting out.
+    def __init__(self, player_hand, crib_turn, turn, name, score):
+        self.hand = player_hand
+        self.score = score  # 0 for a player just starting out.
         self.crib_turn = crib_turn
         self.turn = turn
         self.name = name
-        self.game_id = game_id
-        self.moves_done = {}
+        # self.moves_done = []
+        # self.move = {"move": None, "move_id": None}
 
 
     # returns a list of the cards in the player's hand in dictionary form (rank, suit and name)
@@ -37,13 +36,18 @@ class Player:
                             'name': self.hand.card_list[i].name}
         return hand_list
 
+    def get_player_name(self):
+        print("Please enter your name.")
+        self.name = str(input())
+
     # Don't think we need this - here just in case
     def get_player_score(self):
         return self.score
 
     def display_hand(self):
         for k in range(len(self.hand.card_list)):
-            print(letter_options[k] + ": " + self.hand.card_list[k].name)
+            print(letter_options[k]+":", end=" ")
+            self.hand.card_list[k].print_card()
         print()
 
     # Append letters to a list for display to the user depending on how many cards they have in their hand.
@@ -53,6 +57,11 @@ class Player:
 
     # TODO: Might need to call calc_score for player.
     # Asks a player for a single card, verifies it is in their hand, and adds the card's rank to the pegging total.
+
+
+    # Call post to move, pass in your move as the data, then create a move_id in the post method of the API, and return
+    # the move_id
+    # TODO: Be sure to add the move to the table list in FE Game.
     def make_move(self):
         if not self.turn:
             return
@@ -72,15 +81,16 @@ class Player:
                 inputted_card = self.hand.card_list[input_return]
 
 
-                # assign a move_id to the card we dealt
-                id = self.create_random_move_id()
-                #self.moves_done[id] = inputted_card
-                move_dict = {"player": self.name, "move_id": id, "move": inputted_card}
-                move_json_string = json.dumps(move_dict)
-
-                # Post the move (card) onto the API - how do I know what game player is a part of?
-                req_post = requests.post(url=localhost_url+'games/'+ str(self.game_id) + '/' + self.name + '/moves/'+
-                                         str(id), data={'move_info': move_json_string})
+                # TODO: Will get to having a player make a move soon
+                # # assign a move_id to the card we dealt
+                # id = self.create_random_move_id()
+                # #self.moves_done[id] = inputted_card
+                # move_dict = {"player": self.name, "move_id": id, "move": inputted_card}
+                # move_json_string = json.dumps(move_dict)
+                #
+                # # Post the move (card) onto the API - how do I know what game player is a part of?
+                # req_post = requests.post(url=localhost_url+'games/'+ str(self.game_id) + '/' + self.name + '/moves/'+
+                #                          str(id), data={'move_info': move_json_string})
 
 
 
@@ -92,7 +102,7 @@ class Player:
                 print("** Not a valid letter option. **")
 
     # Asks the user for two cards, verifies they are in their hand, removes them, and sends them to the crib
-    def send_cards_to_crib(self):
+    def send_cards_to_crib(self, crib):
         # if not self.crib_turn:        # Both players send cards to crib each turn
         #     return
 
@@ -132,13 +142,13 @@ class Player:
                 print("** Not a valid selection for card 2 **")
 
 
-    def create_random_move_id(self):
-        id = random.randint(1, 10000)
-        while True:
-            if self.moves_done[id] in self.moves_done:
-                id = random.randint(1, 10000)
-            else:
-                return id
+    # def create_random_move_id(self):
+    #     id = random.randint(1, 10000)
+    #     while True:
+    #         if self.moves_done[id] in self.moves_done:
+    #             id = random.randint(1, 10000)
+    #         else:
+    #             return id
 
 
 # This would be a place where we'd call the FE/BE API to get the pegging information (like total) for us.

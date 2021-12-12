@@ -16,7 +16,6 @@ A move is just a card - so what are we doing with that card? We are going to hav
 (so just call the pegging method to receive the move and pass in the Move card as parameter). When the pegging class receives the move,
 then receive_pegging_move(player_move) will call detect_illegal_move(), then calc_score() and update as it needs to.
 
-
 '''
 
 move_id_list = []
@@ -35,7 +34,8 @@ class Move:
     # Call GET on API server
     # Call to specific game of the player. Then using that game_id, player_name, access the move.
     def receive_move(self, player_name):  # TODO: Pass in info about player?
-        # How to get game_id here of specific player?
+
+        # How to get game_id, player_info, and move_id from frontend player?
         URL = localhost_url + 'games/' + str(0000) + '/' + player_name + '/moves/' + str(self.move_id)
         get_req = requests.get(url=URL)
         get_req = json.loads(get_req.text)[0]  # We get a card_dictionary here
@@ -58,13 +58,7 @@ def main():
     my_move = Move(create_random_move_id())
     my_move.receive_move('tyler')
 
+
 if __name__ == '__main__':
     main()
 
-# Need to modify Player's make_move to send a move over the API. Then in receive_move, we can access it.
-# When testing, be sure to create a new game (BE_Game), then have player_1 in BE_Game call Player's method make_move()
-# You might have to change this later b/c Player make_move() method on FE and BE_Game on backend, but just ignore it
-# make_move() when called, should put a move on the API, then call your receive_move here to get that specific move
-
-
-# Use a specific game_id and player_name for testing purposes
