@@ -1,4 +1,24 @@
-from scoring import calc_score
+from scoring import *
+
+
+
+def check_run(player_move):
+    moves_so_far = player_move.moves_so_far
+    new_move = player_move.move
+
+    if new_move in moves_so_far:
+        moves_so_far.remove(new_move)  # just in case it was implemented in such a way
+
+    before_add = calc_run(moves_so_far)
+
+    moves_so_far.append(new_move)
+
+    after_add = calc_run(moves_so_far)
+
+    if before_add == after_add:
+        return 0
+    else:
+        return after_add
 
 
 def get_score_for_move(player_move):

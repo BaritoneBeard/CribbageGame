@@ -79,6 +79,9 @@ def calc_pairs(card_list: list):
 
 def calc_run(card_list: list):
     cards_in_run = []
+    for i in range(len(card_list)):
+        if type(card_list[i]) == Card.Card:
+            card_list[i] = card_list[i].rank
     card_list.sort()
     current = -1  # If aces are low, aces = 1, so we don't want to give free points just for having an ace.
     for i in card_list:
