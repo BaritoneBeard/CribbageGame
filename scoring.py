@@ -27,7 +27,7 @@ deckname = 'decks/tdn'
 '''
 
 
-def calc_15(nums: list):
+def calc_15(nums: list):    # this is a list of RANKS
     nums.sort()
     score = 0
     repeats = []
@@ -36,6 +36,8 @@ def calc_15(nums: list):
             total = 0
             cards_combined = []  # tracks the combos for this iteration only.
             for card in combo:
+                if card >= 10:
+                    card = 10
                 total += card
                 cards_combined.append(card)
                 if total == 15 and cards_combined not in repeats:
