@@ -12,15 +12,12 @@ letter_options = []
 #crib = Crib([])
 localhost_url = 'http://127.0.0.1:5000/'  # Will change once we upload to Dave's server.
 
-
-
-
 # Frontend Class
 class Player:
     def __init__(self, player_hand, crib_turn, turn, name, score):
         self.hand = player_hand
         self.score = score  # 0 for a player just starting out.
-        self.crib_turn = crib_turn
+        self.crib_turn = crib_turn  # Every round this will flip for the two players
         self.turn = turn
         self.name = name
         # self.moves_done = []

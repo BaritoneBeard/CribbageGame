@@ -7,6 +7,8 @@ from flask_restful import Resource, Api
 import logging
 from BE_Game import BE_Game
 from Player_BE import Player_BE
+from scoring import *
+import Card
 
 
 
@@ -91,18 +93,52 @@ class Player(Resource):
         except KeyError:
             return Response(status=409, response="Unable to create a new player at this time.")
 
-    def get(self, player_name):
+    def get(self, player_name, game_id):
         try:
-            return make_response(jsonify(players[player_name]), 200)
-            #return Response(status=200, response=players[player_name])
+            current_game = games[game_id]
+
+            # Makes things easier for referencing the player we're talking about
+            if current_game.player_1.name == player_name:
+                current_player = current_game.player_1
+            else:
+                current_player = current_game.player_2
+
+            return Response(status=200, response=str(current_player.score))
+            # return make_response(jsonify(players[player_name]), 200)
         except:
             return Response(status=404, response="The player you are looking for cannot be found.")
 
-    # Here, have URL be 'games/'+player_name+'/update' - used to update info about player and return it (like score)
-    def put(self, player_name):
-        pass
+    # Takes in the player's 4-card hand, stores it, calculates the score based on that hand and returns the score.
+    def put(self, player_name, game_id):
+        try:
+            current_game = games[game_id]
 
-    def delete(self, player_name):
+            # Just to make things easier for referencing players
+            if current_game.player_1.name == player_name:
+                current_player = current_game.player_1
+            else:
+                current_player = current_game.player_2
+
+            # Grabs incoming data as player's updated hand and updates BE_Game's player hand (depending on who it is)
+            updated_player_hand = request.form['updated_player_hand']
+            updated_player_hand = json.loads(updated_player_hand)  # Takes the json string and makes it a list again.
+
+            current_player.hand = updated_player_hand
+
+            # Convert my list of dictionaries into a list of Card objects before we call scoring.
+            player_list_of_cards = []
+            for i in range(len(current_game.player_1.hand)):
+                convert_to_card = Card.make_card(current_game.player_1.hand[i])
+                player_list_of_cards.append(convert_to_card)
+
+            # Call scoring.py method, update the player's score, then return the score in the response.
+            earned_points = calc_score(player_list_of_cards)
+            current_player.score += earned_points
+            return Response(status=200, response=str(current_player.score))
+        except:
+            return Response(status=404, response="Could not update player's hand and return new score.")
+
+    def delete(self, player_name, game_id):
         try:
             del players[player_name]
             return Response(status=205, response="Player has been deleted from the game.")

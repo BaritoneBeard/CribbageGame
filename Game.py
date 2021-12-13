@@ -26,6 +26,9 @@ class Game:
         self.crib = Crib(Hand())
         self.table = []
 
+    # Player's GET needs to be called when we do a make_move(). Pegging points get updated as the round goes.
+    # But, a player's hand (and crib) gets displayed at the end of the round. So, call GET again once the round is
+    # over.
 
     def start_game(self):
 
@@ -46,6 +49,8 @@ class Game:
         create_player_2 = requests.post(url=base_url+'games/'+str(self.game_id)+'/'+self.player_2.name)
         player_2_hand = json.loads(create_player_2.text)
 
+        get_player_1_score = requests.get(url=base_url+'games/'+str(self.game_id)+'/'+self.player_1.name)
+        print("Player 1 score: ", int(get_player_1_score.content))
 
         # Convert players hands into Card objects and add their cards to their own list.
         p1_list = []
@@ -82,9 +87,8 @@ class Game:
         self.player_2.send_cards_to_crib(self.crib)
 
         # Test that the crib prints.
-        print("Crib List: ")
+        print("--------Crib List--------: ")
         for i in range(len(self.crib.hand.card_list)):
-            print("Card: ", end=" ")
             self.crib.hand.card_list[i].print_card()
         # ---------------------------
 
@@ -92,6 +96,7 @@ class Game:
         # Convert the crib back into a list of card dictionaries (rank, suit) to pass over to backend for scoring.
         # We do this because we cannot send Card objects (or any objects) over the API (HTTP)
         crib_list_to_send = []
+
         for i in range(len(self.crib.hand.card_list)):
             card_dict = {"rank": self.crib.hand.card_list[i].rank, "suit": self.crib.hand.card_list[i].suit}
             crib_list_to_send.append(card_dict)
@@ -101,7 +106,22 @@ class Game:
         # Send crib info to the backend and return the crib_id so the frontend has access to it.
         create_crib = requests.post(url=base_url+'games/'+str(self.game_id)+'/cribs', data={'crib_card_list': crib_json})
         self.crib.crib_id = int(create_crib.content)
-        print("Crib_id FE: ", self.crib.crib_id)
+
+        # Need to convert player's hand to list of dictionaries (not Card objects) to send over the server.
+        updated_player_hand = []
+        for i in range(len(self.player_1.hand.card_list)):
+            card_dict = {"rank": self.player_1.hand.card_list[i].rank, "suit": self.player_1.hand.card_list[i].suit}
+            updated_player_hand.append(card_dict)
+
+        json_updated_hand = json.dumps(updated_player_hand)
+
+        # Right now, both players have 4 cards, so call PUT to update and score the player's hands.
+        put_req = requests.put(url=base_url+'games/'+str(self.game_id)+'/'+self.player_1.name,
+                               data={'updated_player_hand': json_updated_hand})
+        print("Player's updated score: ", int(put_req.content))
+        self.player_1.score += int(put_req.content)  # Adds on the score that we retrieved from BE calculations.
+
+
 
         delete_game = requests.delete(url=deck_and_card_url+deckname)
 
