@@ -32,7 +32,7 @@ def step_impl(context):
 
 @then('I can check if a player added to the pegging')
 def step_impl(context):
-    nrank_list = [3,4,5]
+    nrank_list = [3,4,6]
     nsuit_list = ['Diamonds', 'Hearts', 'Spades']
     ncard_list = []
     for i in range(len(nrank_list)):
@@ -40,10 +40,23 @@ def step_impl(context):
         ncard_list.append(card)
     m = Card.Card(7, "Diamonds")
     nmove = Move.Move(1234, player=None, moves_so_far=ncard_list, move=m)
-    assert pegging.check_score(nmove, calc_run) == 0
-    # assert pegging.check_score(nmove, calc_15) != 0
-    n = Card.Card(6,"diamonds")
+    assert pegging.check_score(nmove, calc_run) == 0    # no change
+    assert pegging.check_score(nmove, calc_15) == 0     # no change
+    assert pegging.check_score(nmove, calc_pairs) == 0  # no change
+    n = Card.Card(5,"Clubs")
     nmove = Move.Move(1234, player=None, moves_so_far=ncard_list, move=n)
-    assert pegging.check_score(nmove, calc_run) != 0
-    # assert pegging.check_score(nmove, calc_15) == 0
+    assert pegging.check_score(nmove, calc_run) != 0    # change, points awarded
+    assert pegging.check_score(nmove, calc_15) != 0     # change, points awarded
+    assert pegging.check_score(nmove, calc_pairs) == 0  # still no pairs
+
+    nrank_list = [3,4,6]
+    nsuit_list = ['Diamonds', 'Diamonds', 'Diamonds']
+    ncard_list = []
+    for i in range(len(nrank_list)):
+        card = Card.Card(nrank_list[i], nsuit_list[i])
+        ncard_list.append(card)
+    m = Card.Card(7, "Diamonds")
+    nmove = Move.Move(1234, player=None, moves_so_far=ncard_list, move=m)
+    flipped_card = Card.Card(11,"Diamonds")
+    assert pegging.check_score(nmove, calc_flush, flipped_card) != 0
 

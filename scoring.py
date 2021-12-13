@@ -20,6 +20,26 @@ deckname = 'decks/tdn'
     Nobs 	1 point 	Jack of the same suit as the starter. Referred to as “One for his nobs/nob” in the United Kingdom.
 '''
 
+
+'''
+    Helper functions for stripping lists of cards into lists of ranks or suits depending on the needs of the function
+'''
+
+
+def extract_ranks(card_list):
+    for i in range(len(card_list)):
+        if type(card_list[i]) == Card.Card:
+            card_list[i] = card_list[i].rank
+    return card_list
+
+
+def extract_suits(card_list):
+    for i in range(len(card_list)):
+        if type(card_list[i]) == Card.Card:
+            card_list[i] = card_list[i].suit
+    return card_list
+
+
 '''
     Checks each combination of cards and adds 2 to total for each combination found that equals exactly 15 or 31.
     Starts with two card combos, then goes to 3, 4, 5...
@@ -27,12 +47,13 @@ deckname = 'decks/tdn'
 '''
 
 
-def calc_15(nums: list):    # this is a list of RANKS
-    nums.sort()
+def calc_15(card_list: list):    # this is a list of RANKS
+    card_list = extract_ranks(card_list)
+    card_list.sort()
     score = 0
     repeats = []
-    for i in range(2, len(nums)):
-        for combo in itertools.combinations(nums, i):  # built in python tool to check each combination of cards
+    for i in range(2, len(card_list)):
+        for combo in itertools.combinations(card_list, i):  # built in python tool to check each combination of cards
             total = 0
             cards_combined = []  # tracks the combos for this iteration only.
             for card in combo:
@@ -59,6 +80,7 @@ def calc_15(nums: list):    # this is a list of RANKS
 
 
 def calc_pairs(card_list: list):
+    card_list = extract_ranks(card_list)
     score = 0
     while card_list:
         head = card_list[0]
@@ -80,16 +102,18 @@ def calc_pairs(card_list: list):
 
 
 def calc_run(card_list: list):
+    card_list = extract_ranks(card_list)
     cards_in_run = []
-    for i in range(len(card_list)):
-        if type(card_list[i]) == Card.Card:
-            card_list[i] = card_list[i].rank
     card_list.sort()
     current = -1  # If aces are low, aces = 1, so we don't want to give free points just for having an ace.
     for i in card_list:
         if i == current + 1:
             cards_in_run.append(i)
             cards_in_run.append(current)
+        else:
+            run = len(set(cards_in_run))
+            if run < 3:
+                cards_in_run.clear()
         current = i
     run = len(set(cards_in_run))    # set() function removes all duplicates
     if run >= 3:
@@ -105,9 +129,10 @@ def calc_run(card_list: list):
 '''
 
 
-def calc_flush(suit_list: list, flipped_suit: str = None):
-    if len(set(suit_list)) == 1:            # flush of 4
-        if flipped_suit == suit_list[0]:    # flush of 5
+def calc_flush(card_list: list, flipped_suit: Card = None):
+    card_list = extract_suits(card_list)
+    if len(set(card_list)) == 1 and len(card_list) == 4:            # flush of 4
+        if flipped_suit.suit == card_list[0]:    # flush of 5
             return 5
         else:
             return 4

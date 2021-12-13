@@ -12,7 +12,7 @@ def step_impl(context):
     card_ranks = [4, 5, 5, 6, 10]
     assert calc_15(card_ranks) == 4     # 4,5,6 is 15, 5,10 is 15, that's it: 2+2 points = 4 points.
     card_ranks = [3,5,7,9,11]
-    assert calc_15(card_ranks) == 2     # 3,5,7 = 15. That's it. 2 points.
+    assert calc_15(card_ranks) == 4     # 3,5,7 = 15. That's it. 2 points.
     card_ranks = []
     assert calc_15(card_ranks) == 0     # no cards, returns 0. May need some error handling in-function
 
@@ -34,17 +34,17 @@ def step_impl(context):
     card_list = [4,5,6]
     assert calc_run(card_list) == 3
     card_list = [4,5,7,8]
-    assert calc_run(card_list) == 4
+    assert calc_run(card_list) == 0
 
 @step('I can determine a flush')
 def step_impl(context):
-    flipped_suit = 'Diamonds'
+    flipped_suit = Card.Card(7,"Diamonds")
     card_list = ['Diamonds','Diamonds','Diamonds','Diamonds']
-    assert calc_flush(card_list, flipped_suit) == 5
+    assert calc_flush(card_list, flipped_suit=flipped_suit) == 5
     card_list = ['Hearts','Hearts','Hearts','Hearts']
     assert calc_flush(card_list, flipped_suit) == 4
     card_list = ['Diamonds','Diamonds','Diamonds','Hearts']
-    assert calc_flush(card_list, flipped_suit) == 0
+    assert calc_flush(card_list, flipped_suit) == 4
 
 @step('I can determine a nob')
 def step_impl(context):
