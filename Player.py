@@ -1,10 +1,9 @@
 import json
 import requests
 
-
 available_letters = ['a', 'b', 'c', 'd', 'e', 'f']
 letter_options = []
-localhost_url = 'http://127.0.0.1:5000/'  # Will change once we upload to Dave's server.
+localhost_url = 'http://127.0.0.1:5000/'
 
 # Frontend Class
 class Player:
@@ -14,13 +13,8 @@ class Player:
         self.crib_turn = crib_turn  # Every round this will flip for the two players
         self.turn = turn
         self.name = name
-        #self.moves_can_make = None
-        # self.moves_done = []
-        # self.move = {"move": None, "move_id": None}
-
 
     # returns a list of the cards in the player's hand in dictionary form (rank, suit and name)
-    # TODO maybe refactor later? it'll return a list of cards when done
     def get_hand(self):
         hand_list = []
         for i in range(len(self.hand.card_list)):
@@ -47,16 +41,8 @@ class Player:
         for i in range(len(self.hand.card_list)):
             letter_options.append(available_letters[i])
 
-    # TODO: Might need to call calc_score for player.
-    # Asks a player for a single card, verifies it is in their hand, and adds the card's rank to the pegging total.
-
-
-    # Call post to move, pass in your move as the data, then create a move_id in the post method of the API, and return
-    # the move_id
-    # TODO: Be sure to add the move to the table list in FE Game.
+    # Call put to move, pass in your move as the data
     def make_move(self, game_id, move_instance_id):
-        # if not self.turn:
-        #     return
 
         self.get_letter_options()  # Just gets the letters for display
         self.display_hand()  # Display the cards/options to the player
@@ -72,27 +58,24 @@ class Player:
                 input_return = letter_options.index(selection)  # e.g. "b" has index 1
                 inputted_card = self.hand.card_list[input_return]
 
-                # inputted_card is a Card class, so I need to convert it to a dict to send over API
+                # inputted_card is a Card class, so need to convert it to a dict to send over API
                 card_dict = {"rank": inputted_card.rank, "suit": inputted_card.suit}
                 card_dict_json = json.dumps(card_dict)
-
 
                 # Attempt to make the move. Does not account for illegal moves.
                 make_move = requests.put(url=localhost_url+'games/'+str(game_id)+'/'+self.name+'/moves/'
                                              +str(move_instance_id), data={'move_card': card_dict_json})
 
+                # Add points of move onto player's score and remove that card from their hand.
                 earned_pegging_points = int(make_move.content)
                 self.score += earned_pegging_points
                 self.hand.remove_card(inputted_card)
-
 
             else:
                 print("** Not a valid letter option. **")
 
     # Asks the user for two cards, verifies they are in their hand, removes them, and sends them to the crib
     def send_cards_to_crib(self, crib):
-        # if not self.crib_turn:        # Both players send cards to crib each turn
-        #     return
 
         print("Player " + self.name + "'s hand: ")
         self.get_letter_options()  # Just gets the letters for display

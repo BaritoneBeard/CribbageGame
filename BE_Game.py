@@ -1,5 +1,4 @@
 import json
-import random
 from Player_BE import Player_BE
 import requests
 
@@ -8,8 +7,6 @@ deckname = 'decks/bgame'
 localhost_url = 'http://127.0.0.1:5000/'
 game_id_list = []
 hand_id_list = []
-
-# Other BE classes like scoring and pegging can call to BE_Game and access its players for scores, turns, etc.
 
 # Assume 2 players in game for now.
 class BE_Game:
@@ -43,28 +40,6 @@ class BE_Game:
     # We need to be checking every 1 second whether someone tried to connect to our game.
     def player_joined(self):
         pass
-
-
-# Selects a random number from 1 to 10000, adds it to a global list of hand_id's
-# checks to make sure we haven't used it yet and returns it
-# Maybe join specific URL endpoint based on game_id ('games/<int:game_id/join')
-def create_random_hand_id():
-    id = random.randint(1,10000)
-    while True:
-        if id in hand_id_list:
-            id = random.randint(1,10000)
-        else:
-            return id
-
-
-# Same as hand_id except with game_id's
-def create_random_game_id():
-    id = random.randint(1,10000)
-    while True:
-        if id in game_id_list:
-            id = random.randint(1,10000)
-        else:
-            return id
 
 
 def main():

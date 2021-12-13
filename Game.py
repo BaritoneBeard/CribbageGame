@@ -16,9 +16,9 @@ deckname = 'decks/bgame'
 
 class Game:
     def __init__(self):
-        # On the backend, you can call to the PCMS server to get your actual hand, then pass back
         self.game_id = None
-        self.player_1 = Player(Hand(), False, False, '', 0)
+        self.move_instance_id = None
+        self.player_1 = Player(Hand(), False, False, '', 0)  # Call to backend to get actual hand
         self.player_2 = Player(Hand(), False, False, '', 0)
         self.dealer = self.assign_initial_dealer()
         self.starter_card = None
@@ -34,33 +34,22 @@ class Game:
         game_info = json.loads(create_game.text)
         self.game_id = game_info["game_id"]
 
-
-
-        # Reducing to None for some reason.
+        # Store starter card - reducing to None for some reason.
         sc = game_info["starter_card"]
         self.starter_card = Card.make_card(sc)
-
-
 
         # Simply make a new move object, creating the attributes moves_so_far, move, move_id
         post_move = requests.post(url=base_url + 'games/' + str(self.game_id) + '/moves')
         self.move_instance_id = int(post_move.content)
-
-
-
 
         # Create the players on the backend and return their hands.
         self.player_1.get_player_name()
         self.player_2.get_player_name()
 
         create_player_1 = requests.post(url=base_url+'games/'+str(self.game_id)+'/'+self.player_1.name)
-        player_1_hand = json.loads(create_player_1.text)  # Supposed to convert json string to dictionary.
+        player_1_hand = json.loads(create_player_1.text)
         create_player_2 = requests.post(url=base_url+'games/'+str(self.game_id)+'/'+self.player_2.name)
         player_2_hand = json.loads(create_player_2.text)
-
-
-
-
 
         # Convert players hands into Card objects and add their cards to their own list.
         p1_list = []
@@ -72,55 +61,34 @@ class Game:
             p2_new_card = Card.make_card(player_2_hand[i])
             p2_list.append(p2_new_card)
 
-        # I now have a list of Card objects rather than a list of dictionaries of card attributes.
+        # Now there's a list of Card objects rather than a list of dictionaries of card attributes.
         # We need players' cards as Card objects to work with Hand and Crib class.
 
         self.player_1.hand.card_list = p1_list
         self.player_2.hand.card_list = p2_list
-        self.player_1.moves_can_make = p1_list
-        self.player_2.moves_can_make = p2_list
-
-
 
         # Ask both players to send cards to the crib - the crib is saved into our crib attribute here in Game.
         self.crib.hand.card_list = []  # Do this because crib's hand.card_list is initially None.
         self.player_1.send_cards_to_crib(self.crib)  # Pass in our crib which is empty and fill it.
         self.player_2.send_cards_to_crib(self.crib)
 
-
-
-        # Test that the crib prints.
-        print("--------Crib--------: ")
-        for i in range(len(self.crib.hand.card_list)):
-            self.crib.hand.card_list[i].print_card()
-        # ---------------------------
-        print()
-
-
         # Convert the crib back into a list of card dictionaries (rank, suit) to pass over to backend for scoring.
         # We do this because we cannot send Card objects (or any objects) over the API (HTTP)
         crib_list_to_send = []
-
         for i in range(len(self.crib.hand.card_list)):
             card_dict = {"rank": self.crib.hand.card_list[i].rank, "suit": self.crib.hand.card_list[i].suit}
             crib_list_to_send.append(card_dict)
 
         crib_json = json.dumps(crib_list_to_send)
 
-        # Send crib info to the backend and return the crib_id so the frontend has access to it.
+        # Send crib info to the backend
         create_crib = requests.post(url=base_url+'games/'+str(self.game_id)+'/cribs', data={'crib_card_list': crib_json})
-        #self.crib.crib_id = int(create_crib.content)
         self.crib_score = int(create_crib.content)
-        print("here's the crib_score: ", self.crib_score)
 
         if self.player_1.crib_turn is True:
             self.player_1.score += self.crib_score
         else:
             self.player_2.score += self.crib_score
-
-
-
-
 
         # Need to convert player's hand to list of dictionaries (not Card objects) to send over the server.
         updated_player_1_hand = []
@@ -130,6 +98,7 @@ class Game:
 
         json_updated_hand_1 = json.dumps(updated_player_1_hand)
 
+
         updated_player_2_hand = []
         for i in range(len(self.player_2.hand.card_list)):
             card_dict = {"rank": self.player_2.hand.card_list[i].rank, "suit": self.player_2.hand.card_list[i].suit}
@@ -138,7 +107,7 @@ class Game:
         json_updated_hand_2 = json.dumps(updated_player_2_hand)
 
 
-        # Right now, both players have 4 cards, so call PUT to update and score the player's hands.
+        # Right now, both players have 4 cards, call PUT to update and score the player's hands.
         put_req_p1 = requests.put(url=base_url+'games/'+str(self.game_id)+'/'+self.player_1.name,
                                data={'updated_player_hand': json_updated_hand_1})
         p1_hand_score = int(put_req_p1.content)
@@ -150,10 +119,8 @@ class Game:
         self.player_2.score += p2_hand_score
 
 
-
-
         # Cannot make more than 1 move.
-        self.player_1.make_move(self.game_id, self.move_instance_id)
+        #self.player_1.make_move(self.game_id, self.move_instance_id)
 
         print("Player 1 score: ", self.player_1.score)
         print("Player 2 score: ", self.player_2.score)
@@ -203,8 +170,10 @@ def main():
             new_game.start_game()
             break
         elif response == "b":
-            new_game.join_game()
-            break
+            # new_game.join_game()
+            print("Cannot join a game. Sorry.")
+            continue
+            # break
         else:
             print("Not a valid response.")
 
