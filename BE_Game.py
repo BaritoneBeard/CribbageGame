@@ -15,35 +15,27 @@ hand_id_list = []
 class BE_Game:
     def __init__(self, game_id):
         self.game_id = game_id
-        self.game_deck = None  # Will change
-        self.player_1 = self.create_player()
-        self.player_2 = self.create_player()
-        self.dealer = None  # Will change
+        self.game_deck = requests.post(deck_and_card_url+deckname)  # Remains null until Game POST is called.
+        self.player_1 = None  # Remains null until a player is asked to be created.
+        self.player_2 = None
         self.starter_card = json.loads(requests.get(deck_and_card_url+deckname+'/cards/1').text)[0]
+        self.crib_list = []
 
-
-    # Come back to
+    # Calls the PCMS server and returns a list of card dictionaries.
     def create_hand(self):
-        player_hand = requests.get(deck_and_card_url + deckname + '/cards/6')  # list of card dictionaries.
+        player_hand = requests.get(deck_and_card_url + deckname + '/cards/6')  # returns a response obj of list of card_dicts
+        player_hand_dict = json.loads(player_hand.text)  # returns as list of card_dicts
 
-        # hand_dict = {"hand_id": create_random_hand_id(), "card_list": player_hand, "cards_on_table": []}
-        # cards_json_string = json.dumps(hand_dict)  # makes the dictionary of cards into a json string that we pass to the server.
-        #
-        # return hand_dict
+        return player_hand_dict  # Not a response object.
 
+    # Determines which players are not active and creates a backend player object (Ex. if p1 is None, create p1)
+    def create_player(self, player_name):
+        if self.player_1 is None:
+            self.player_1 = Player_BE(self.create_hand(), player_name, 0)
+        elif self.player_2 is None:
+            self.player_2 = Player_BE(self.create_hand(), player_name, 0)
 
-    # Come back to - not accurate
-    def create_player(self):
-        # Create the Player using the Hand created above.
-        player_dict = {"hand": self.create_hand(), "crib_turn": False, "turn": False, "score": 0, "name": "tyler"}
-        player_json_string = json.dumps(player_dict)
-
-        new_player = Player_BE(player_dict["hand"], player_dict["crib_turn"], player_dict["turn"], player_dict["name"])
-
-        return new_player
-
-
-    # Need to be able to call send_cards_to_crib method from player - how?
+    # Don't need this - here just in case.
     def get_crib_cards(self):
         pass
 
@@ -55,6 +47,7 @@ class BE_Game:
 
 # Selects a random number from 1 to 10000, adds it to a global list of hand_id's
 # checks to make sure we haven't used it yet and returns it
+# Maybe join specific URL endpoint based on game_id ('games/<int:game_id/join')
 def create_random_hand_id():
     id = random.randint(1,10000)
     while True:
@@ -62,6 +55,7 @@ def create_random_hand_id():
             id = random.randint(1,10000)
         else:
             return id
+
 
 # Same as hand_id except with game_id's
 def create_random_game_id():

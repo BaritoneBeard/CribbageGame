@@ -17,6 +17,7 @@ deckname = 'decks/bgame'
 class Game:
     def __init__(self):
         # On the backend, you can call to the PCMS server to get your actual hand, then pass back
+        self.game_id = None
         self.player_1 = Player(Hand(), False, False, '', 0)
         self.player_2 = Player(Hand(), False, False, '', 0)
         self.dealer = self.assign_initial_dealer()
@@ -30,16 +31,19 @@ class Game:
 
         # Create the game initially, return game_id
         create_game = requests.post(url=base_url+'games')
-        game_id = int(create_game.content)
+        game_info = json.loads(create_game.text)
+        self.game_id = game_info["game_id"]
+        # only need the starter_card because we want to display it to the user - calculations are on backend.
+        self.starter_card = game_info["starter_card"]
 
 
         # Create the players on the backend and return their hands.
         self.player_1.get_player_name()
         self.player_2.get_player_name()
 
-        create_player_1 = requests.post(url=base_url+'games/'+str(game_id)+'/'+self.player_1.name)
-        player_1_hand = json.loads(create_player_1.text)
-        create_player_2 = requests.post(url=base_url+'games/'+str(game_id)+'/'+self.player_2.name)
+        create_player_1 = requests.post(url=base_url+'games/'+str(self.game_id)+'/'+self.player_1.name)
+        player_1_hand = json.loads(create_player_1.text)  # Supposed to convert json string to dictionary.
+        create_player_2 = requests.post(url=base_url+'games/'+str(self.game_id)+'/'+self.player_2.name)
         player_2_hand = json.loads(create_player_2.text)
 
 
@@ -78,7 +82,7 @@ class Game:
         self.player_2.send_cards_to_crib(self.crib)
 
         # Test that the crib prints.
-        print("Here's our crib: ", self.crib.hand.card_list)
+        print("Crib List: ")
         for i in range(len(self.crib.hand.card_list)):
             print("Card: ", end=" ")
             self.crib.hand.card_list[i].print_card()
@@ -92,18 +96,16 @@ class Game:
             card_dict = {"rank": self.crib.hand.card_list[i].rank, "suit": self.crib.hand.card_list[i].suit}
             crib_list_to_send.append(card_dict)
 
-        crib_dict = {"card_list": crib_list_to_send}
-        crib_json = json.dumps(crib_dict)
+        crib_json = json.dumps(crib_list_to_send)
 
         # Send crib info to the backend and return the crib_id so the frontend has access to it.
-        create_crib = requests.post(url=base_url+'games/'+str(game_id)+'/cribs', data={'crib_card_list': crib_json})
-        crib_id = int(create_crib.content)
-
-
+        create_crib = requests.post(url=base_url+'games/'+str(self.game_id)+'/cribs', data={'crib_card_list': crib_json})
+        self.crib.crib_id = int(create_crib.content)
+        print("Crib_id FE: ", self.crib.crib_id)
 
         delete_game = requests.delete(url=deck_and_card_url+deckname)
 
-    # Have user pass in a specific game_id so they can join a game.
+    # Have user pass in a specific game_id so they can join a game - then go to that specific game address?
     def join_game(self):
         pass
 

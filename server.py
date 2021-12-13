@@ -33,13 +33,19 @@ cribs = {}
 class Game(Resource):
     def post(self):
         try:
-            game_id = str(random.randint(1,10000))
+            # Generate a random game_id + create a new BE_Game to store all information about a game.
+            game_id = random.randint(1,10000)
+            new_game = BE_Game(game_id)
 
-            # Create a new deck
-            new_deck = requests.post(deck_and_card_url+deckname)
+            # store our newly create game in games so other Resources can access it
+            games[game_id] = new_game
+
+            # game_id and starter_card need to be accessed by the FE, so store in a json string and pass it
+            game_info = {"game_id": game_id, "starter_card": new_game.starter_card}
+            game_json = json.dumps(game_info)
 
             logger.info("INFO: Game Resource posted successfully.")
-            return Response(status=201, response=game_id)  # Return game_id to the frontend.
+            return Response(status=201, response=game_json)
 
         except KeyError:
             logger.error("ERROR: KeyError exception encountered with Game Resource POST call.")
@@ -64,14 +70,24 @@ class Game(Resource):
             return Response(status=404, response="Cannot delete game because it does not exist.")
 
 
-# Still need to pass player_name and hand to Player_BE for storage.
+
 class Player(Resource):
     def post(self, player_name, game_id):
         try:
-            # Call PCMS to create hand for the player - then send it back to frontend.
-            player_hand = requests.get(deck_and_card_url + deckname + '/cards/6')  # This returns a list of dicts
+            # Access the current game
+            current_game = games[int(game_id)]
 
-            return Response(status=201, response=player_hand)
+            # Creates a new player if player attribute of BE_Game is None
+            current_game.create_player(player_name)
+
+            # Return the player's hand depending on which player it is
+            if current_game.player_1.name == player_name:
+                hand_json = json.dumps(current_game.player_1.hand)
+                return Response(status=201, response=hand_json)
+            else:
+                hand_json = json.dumps(current_game.player_2.hand)
+                return Response(status=201, response=hand_json)
+
         except KeyError:
             return Response(status=409, response="Unable to create a new player at this time.")
 
@@ -148,12 +164,14 @@ class Move(Resource):
 class Crib(Resource):
     def post(self, game_id):
         try:
+            # Generate a random crib_id and grab crib_list from frontend.
             crib_id = str(random.randint(1,10000))
             crib_card_list = request.form['crib_card_list']
-            cards_list = json.loads(crib_card_list)["card_list"]  # Gives a list of card dicts (dicts with rank+suit)
+            cards_list = json.loads(crib_card_list)  # Gives a list of card dicts (dicts with rank+suit)
 
-            # games[game_id].crib = cards_list  -- this would be our BE_Game we create accessing and setting the crib.
-            # The crib would then be a list of dictionaries that we pass into scoring.
+            # Store cards from crib into our current game
+            current_game = games[game_id]
+            current_game.crib_list = cards_list
 
             return Response(status=201, response=crib_id)
         except KeyError:

@@ -3,12 +3,11 @@ import random
 import requests
 
 
-# should Player_BE also have the methods that Player has in frontend? or just attributes?
+# crib_turn and turn will be taken care of on the frontend. Might need that info though for scoring
 class Player_BE():
-    def __init__(self, player_hand, crib_turn, turn, name, score):
-        # player_hand is a Hand with its own id, so in a way, it is attached to a specific player
-        self.hand = player_hand
+    def __init__(self, player_hand, name, score):
+        self.hand = player_hand  # a list of card dictionaries.
         self.score = score  # 0 for a player just starting out.
-        self.crib_turn = crib_turn
-        self.turn = turn
         self.name = name
+        # self.crib_turn = crib_turn
+        # self.turn = turn
