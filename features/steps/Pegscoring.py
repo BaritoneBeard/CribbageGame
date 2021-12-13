@@ -1,5 +1,6 @@
 from behave import *
 import pegging
+from scoring import *
 import Card
 import Move
 
@@ -29,11 +30,7 @@ def step_impl(context):
     nmove = Move.Move(1234,player=None, moves_so_far = ncard_list, move = m)
     assert pegging.detect_illegal_move(nmove) is True
 
-@then('I can tally up those points whenever a new card is added')
-def step_impl(context):
-    assert pegging.get_score_for_move(move) == 2
-
-@step('I can check if a player added to a run')
+@then('I can check if a player added to the pegging')
 def step_impl(context):
     nrank_list = [3,4,5]
     nsuit_list = ['Diamonds', 'Hearts', 'Spades']
@@ -43,7 +40,10 @@ def step_impl(context):
         ncard_list.append(card)
     m = Card.Card(7, "Diamonds")
     nmove = Move.Move(1234, player=None, moves_so_far=ncard_list, move=m)
-    assert pegging.check_run(nmove) == 0
+    assert pegging.check_score(nmove, calc_run) == 0
+    # assert pegging.check_score(nmove, calc_15) != 0
     n = Card.Card(6,"diamonds")
     nmove = Move.Move(1234, player=None, moves_so_far=ncard_list, move=n)
-    assert pegging.check_run(nmove) != 0
+    assert pegging.check_score(nmove, calc_run) != 0
+    # assert pegging.check_score(nmove, calc_15) == 0
+
