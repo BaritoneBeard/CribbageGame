@@ -118,9 +118,10 @@ class Game:
         p2_hand_score = int(put_req_p2.content)
         self.player_2.score += p2_hand_score
 
-
         # Cannot make more than 1 move.
-        #self.player_1.make_move(self.game_id, self.move_instance_id)
+        self.player_1.make_move(self.game_id, self.move_instance_id)
+        self.player_1.make_move(self.game_id, self.move_instance_id)
+        self.player_1.make_move(self.game_id, self.move_instance_id)
 
         print("Player 1 score: ", self.player_1.score)
         print("Player 2 score: ", self.player_2.score)

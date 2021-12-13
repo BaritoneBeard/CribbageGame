@@ -52,7 +52,10 @@ def detect_illegal_move(player_move):   # What's "illegal" in cribbage?
     total_rank_value = 0
 
     for i in range(len(player_move.moves_so_far)):
-        total_rank_value += player_move.moves_so_far[i].rank
+        if type(player_move.moves_so_far[i]) != int:
+            total_rank_value += player_move.moves_so_far[i].rank
+        else:
+            total_rank_value += player_move.moves_so_far[i]
 
     if player_move.move is not None:
             total_rank_value += player_move.move.rank
