@@ -1,15 +1,9 @@
 import json
-import random
-
 import requests
 
-from Hand import Hand
-from Crib import Crib
-from Card import Card
 
 available_letters = ['a', 'b', 'c', 'd', 'e', 'f']
 letter_options = []
-#crib = Crib([])
 localhost_url = 'http://127.0.0.1:5000/'  # Will change once we upload to Dave's server.
 
 # Frontend Class
@@ -20,6 +14,7 @@ class Player:
         self.crib_turn = crib_turn  # Every round this will flip for the two players
         self.turn = turn
         self.name = name
+        #self.moves_can_make = None
         # self.moves_done = []
         # self.move = {"move": None, "move_id": None}
 
@@ -59,9 +54,9 @@ class Player:
     # Call post to move, pass in your move as the data, then create a move_id in the post method of the API, and return
     # the move_id
     # TODO: Be sure to add the move to the table list in FE Game.
-    def make_move(self):
-        if not self.turn:
-            return
+    def make_move(self, game_id, move_instance_id):
+        # if not self.turn:
+        #     return
 
         self.get_letter_options()  # Just gets the letters for display
         self.display_hand()  # Display the cards/options to the player
@@ -70,31 +65,27 @@ class Player:
 
         # when refactoring, some stuff was moved around, if we revert, remember to change tabbing
         selection = None
-        while (selection not in letter_options):
+        while (selection not in letter_options): # selection not in letter_options
             selection = str(input())
 
             if selection in letter_options:
                 input_return = letter_options.index(selection)  # e.g. "b" has index 1
                 inputted_card = self.hand.card_list[input_return]
 
-
-                # TODO: Will get to having a player make a move soon
-                # # assign a move_id to the card we dealt
-                # id = self.create_random_move_id()
-                # #self.moves_done[id] = inputted_card
-                # move_dict = {"player": self.name, "move_id": id, "move": inputted_card}
-                # move_json_string = json.dumps(move_dict)
-                #
-                # # Post the move (card) onto the API - how do I know what game player is a part of?
-                # req_post = requests.post(url=localhost_url+'games/'+ str(self.game_id) + '/' + self.name + '/moves/'+
-                #                          str(id), data={'move_info': move_json_string})
+                # inputted_card is a Card class, so I need to convert it to a dict to send over API
+                card_dict = {"rank": inputted_card.rank, "suit": inputted_card.suit}
+                card_dict_json = json.dumps(card_dict)
 
 
+                # Attempt to make the move. Does not account for illegal moves.
+                make_move = requests.put(url=localhost_url+'games/'+str(game_id)+'/'+self.name+'/moves/'
+                                             +str(move_instance_id), data={'move_card': card_dict_json})
 
-
-
-                # peg.total += inputted_card.rank
+                earned_pegging_points = int(make_move.content)
+                self.score += earned_pegging_points
                 self.hand.remove_card(inputted_card)
+
+
             else:
                 print("** Not a valid letter option. **")
 
@@ -103,6 +94,7 @@ class Player:
         # if not self.crib_turn:        # Both players send cards to crib each turn
         #     return
 
+        print("Player " + self.name + "'s hand: ")
         self.get_letter_options()  # Just gets the letters for display
         self.display_hand()  # Display the cards/options to the player
 
@@ -139,32 +131,23 @@ class Player:
                 print("** Not a valid selection for card 2 **")
 
 
-    # def create_random_move_id(self):
-    #     id = random.randint(1, 10000)
-    #     while True:
-    #         if self.moves_done[id] in self.moves_done:
-    #             id = random.randint(1, 10000)
-    #         else:
-    #             return id
-
-
 # This would be a place where we'd call the FE/BE API to get the pegging information (like total) for us.
-class TestPeg:
-    def __init__(self):
-        self.total = 0
+# class TestPeg:
+#     def __init__(self):
+#         self.total = 0
 
 
 
 # The code below is for testing purposes only
-def main():
-    # Create a player hand using these cards.
-    player_hand = Hand(987, card_list=[Card(0), Card(1), Card(2), Card(3), Card(4), Card(5)], cards_on_table=[])
-    my_player = Player(player_hand, True, True)
-    peg = TestPeg()
-    my_player.send_cards_to_crib()
-    print()
-    my_player.make_move()
-
-
-if __name__ == '__main__':
-    main()
+# def main():
+#     # Create a player hand using these cards.
+#     player_hand = Hand(987, card_list=[Card(0), Card(1), Card(2), Card(3), Card(4), Card(5)], cards_on_table=[])
+#     my_player = Player(player_hand, True, True)
+#     peg = TestPeg()
+#     my_player.send_cards_to_crib()
+#     print()
+#     my_player.make_move()
+#
+#
+# if __name__ == '__main__':
+#     main()

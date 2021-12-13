@@ -5,10 +5,15 @@ import requests
 from flask import Flask, request, Response, jsonify, make_response
 from flask_restful import Resource, Api
 import logging
+
+import pegging
+import scoring
 from BE_Game import BE_Game
 from Player_BE import Player_BE
 from scoring import *
 import Card
+import Move
+from pegging import *
 
 
 
@@ -44,6 +49,7 @@ class Game(Resource):
 
             # game_id and starter_card need to be accessed by the FE, so store in a json string and pass it
             game_info = {"game_id": game_id, "starter_card": new_game.starter_card}
+            print("Here's my starter card: ", game_info["starter_card"])
             game_json = json.dumps(game_info)
 
             logger.info("INFO: Game Resource posted successfully.")
@@ -134,7 +140,7 @@ class Player(Resource):
             # Call scoring.py method, update the player's score, then return the score in the response.
             earned_points = calc_score(player_list_of_cards)
             current_player.score += earned_points
-            return Response(status=200, response=str(current_player.score))
+            return Response(status=200, response=str(earned_points))
         except:
             return Response(status=404, response="Could not update player's hand and return new score.")
 
@@ -171,28 +177,117 @@ class Hand(Resource):
             return Response(status=404, response="Cannot delete this hand because it does not exist.")
 
 
-# Have not modified yet
-class Move(Resource):
-    def post(self, move_id, player_name, game_id):
+'''
+How can I do Move here? In Player's make_move(), I can call POST to this Move resource here, then, using that move,
+I can call the pegging class to calculate the score based on that. Update the score, and return the score.
+
+I've already calculated the score based on the 4-card hand, so do i need to update the player's hand??? Not really,
+unless I have another reason for doing it, I think it's fine.
+
+When I bring a move in, I should make a Move object out of it. I need:
+    -move_id
+    -player (pass in player name, then do BE_Game.player_1 or something?)
+    -moves_so_far (just add a Card object (translated from a dict coming in) to this list. moves_so_far.append(card)
+    -move -- do i really need? I don't think so because the move is a Move object itself.
+
+'''
+
+# Player's Move comes in, a Move object is created, then passed into pegging for a score which is returned.
+class MoveInstance(Resource):  # Not to be confused with the BE Move class that we import
+    def post(self, game_id):
         try:
-            req = request.form['move_info']
-            moves[move_id] = json.loads(req)
-            return Response(status=201, response="Successfully stored a move for player: " + player_name)
+            move_id = random.randint(1,10000)
+
+            single_move_obj = Move.create_move_instance(move_id)
+            moves[move_id] = single_move_obj  # store the move instance at game_id so everyone can have access to it.
+
+            return Response(status=201, response=str(move_id))
         except KeyError:
             return Response(status=409, response="Unable to process the requested move at this time.")
 
-    def get(self, move_id, player_name, game_id):
+    def get(self, game_id):
         try:
-            return make_response(jsonify(moves[move_id]), 200)
+            pass
+            # return make_response(jsonify(moves[move_id]), 200)
         except:
             return Response(status=404, response="The move you want to access cannot be found.")
 
-    def delete(self, move_id, player_name, game_id):
+    # def put(self, player_name, game_id):
+    #     try:
+    #         current_game = games[game_id]
+    #         if current_game.player_1.name == player_name:
+    #             current_player = current_game.player_1
+    #         else:
+    #             current_player = current_game.player_2
+    #
+    #         players_move = request.form['move_card']
+    #         players_move = json.loads(players_move)  # Now a dictionary.
+    #         card_obj = Card.make_card(players_move)
+    #
+    #         player_move = Move.receive_move(move_id, card_obj)
+    #         earned_points = get_score_for_move(player_move)
+    #         current_player.score += earned_points
+
+    def delete(self, game_id):
         try:
-            del moves[move_id]
+            # del moves[move_id]
             return Response(status=205, response="This move has been deleted from the game.")
         except KeyError:
             return Response(status=404, response="Cannot delete this move because it does not exist.")
+
+
+
+class MoveAPI(Resource):
+    def put(self, player_name, game_id, move_id):
+
+        # Get the current game and move instance (Move object) associated with it.
+        current_game = games[game_id]
+        starter = current_game.starter_card
+        print("After game_id")
+        move_instance = moves[move_id]
+        print("After move_id")
+
+        # For easier purposes.
+        if current_game.player_1.name == player_name:
+            current_player = current_game.player_1
+        else:
+            current_player = current_game.player_2
+
+        # add the incoming player's move card to your "move" attribute of your move instance.
+        player_move = request.form['move_card']
+        print("After requesting data")
+        player_move = json.loads(player_move)  # Now a dictionary.
+        print("After json loads")
+        card_obj = Card.make_card(player_move)  # Now a Card object, we can pass to pegging.
+        print("After making card object", card_obj)
+
+
+        # TODO: OOH I need to pass in a MOVE OBJECT, not a Card object, when i call detect_illegal_move()
+        # Set my move_instance.move = Card object
+        # Then call illegal moves
+        # Then if move is good, get score and add it to moves so far
+        # Then return the score here.
+
+        print("Move_instance should be a move: ", move_instance)
+        move_instance.move = card_obj
+        print("What is move? ", move_instance.move)
+
+
+        # If detect illegal moves returns a True (it's an illegal move), return a response. Then on FE if response
+        # is False, move to the next player.
+        # if pegging.detect_illegal_move(move_instance):
+        #     return Response(status=409, response=json.dumps(False))
+        # else:
+        earned_points_for_peg = pegging.get_score_for_move(move_instance, starter)  # Will auto append move to moves_so_far
+        print("Earned points: ", earned_points_for_peg)
+        current_player.score += earned_points_for_peg
+        return Response(status=200, response=str(earned_points_for_peg))
+
+            # It wasn't an illegal move, so get score, add card to moves_so_far, return score
+
+
+
+
 
 
 
@@ -200,16 +295,26 @@ class Move(Resource):
 class Crib(Resource):
     def post(self, game_id):
         try:
+            current_game = games[game_id]
+
             # Generate a random crib_id and grab crib_list from frontend.
             crib_id = str(random.randint(1,10000))
             crib_card_list = request.form['crib_card_list']
             cards_list = json.loads(crib_card_list)  # Gives a list of card dicts (dicts with rank+suit)
 
-            # Store cards from crib into our current game
-            current_game = games[game_id]
-            current_game.crib_list = cards_list
+            for i in range(len(cards_list)):
+                new_card = Card.make_card(cards_list[i])
+                current_game.crib_list.append(new_card)  # Takes dictionary, makes card out of it and adds to list
 
-            return Response(status=201, response=crib_id)
+            # Store cards from crib into our current game
+            # current_game.crib_list = cards_list
+
+            flipped_card = Card.make_card(current_game.starter_card)
+
+            # Calculate score based on cards in crib and return it. First turn each dictionary in list to Card object
+            crib_score = scoring.calc_score(current_game.crib_list, flipped_card)
+
+            return Response(status=201, response=str(crib_score))
         except KeyError:
             return Response(status=409, response="Unable to create a crib at this time.")
 
@@ -234,7 +339,8 @@ class Crib(Resource):
 api_instance.add_resource(Game, '/games')
 api_instance.add_resource(Player, '/games/<int:game_id>/<string:player_name>')
 # api_instance.add_resource(Hand, '/games/<int:game_id>/hands/<int:hand_id>')
-# api_instance.add_resource(Move, '/games/<int:game_id>/players/<string:player_name>/moves/<int:move_id>')
+api_instance.add_resource(MoveInstance, '/games/<int:game_id>/moves')  # Just for creating a Move object (setting up)
+api_instance.add_resource(MoveAPI, '/games/<int:game_id>/<string:player_name>/moves/<int:move_id>')
 api_instance.add_resource(Crib, '/games/<int:game_id>/cribs')
 
 

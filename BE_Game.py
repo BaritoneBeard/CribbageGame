@@ -5,7 +5,7 @@ import requests
 
 deck_and_card_url = 'http://pcms.game-host.org:8543/'
 deckname = 'decks/bgame'
-localhost_url = 'http://127.0.0.1:5000/'  # Will change once we upload to Dave's server.
+localhost_url = 'http://127.0.0.1:5000/'
 game_id_list = []
 hand_id_list = []
 

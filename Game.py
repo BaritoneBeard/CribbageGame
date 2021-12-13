@@ -24,11 +24,8 @@ class Game:
         self.starter_card = None
 
         self.crib = Crib(Hand())
+        self.crib_score = 0
         self.table = []
-
-    # Player's GET needs to be called when we do a make_move(). Pegging points get updated as the round goes.
-    # But, a player's hand (and crib) gets displayed at the end of the round. So, call GET again once the round is
-    # over.
 
     def start_game(self):
 
@@ -36,8 +33,20 @@ class Game:
         create_game = requests.post(url=base_url+'games')
         game_info = json.loads(create_game.text)
         self.game_id = game_info["game_id"]
-        # only need the starter_card because we want to display it to the user - calculations are on backend.
-        self.starter_card = game_info["starter_card"]
+
+
+
+        # Reducing to None for some reason.
+        sc = game_info["starter_card"]
+        self.starter_card = Card.make_card(sc)
+
+
+
+        # Simply make a new move object, creating the attributes moves_so_far, move, move_id
+        post_move = requests.post(url=base_url + 'games/' + str(self.game_id) + '/moves')
+        self.move_instance_id = int(post_move.content)
+
+
 
 
         # Create the players on the backend and return their hands.
@@ -49,8 +58,9 @@ class Game:
         create_player_2 = requests.post(url=base_url+'games/'+str(self.game_id)+'/'+self.player_2.name)
         player_2_hand = json.loads(create_player_2.text)
 
-        get_player_1_score = requests.get(url=base_url+'games/'+str(self.game_id)+'/'+self.player_1.name)
-        print("Player 1 score: ", int(get_player_1_score.content))
+
+
+
 
         # Convert players hands into Card objects and add their cards to their own list.
         p1_list = []
@@ -67,18 +77,9 @@ class Game:
 
         self.player_1.hand.card_list = p1_list
         self.player_2.hand.card_list = p2_list
+        self.player_1.moves_can_make = p1_list
+        self.player_2.moves_can_make = p2_list
 
-        # TODO: how to show hands to individual players?
-
-        # Display the cards to the user - TODO: need to modify Player a bit, so there are no double prints.
-        self.player_1.get_letter_options()
-        print("Player 1's hand\n")
-        self.player_1.display_hand()
-        print()
-        self.player_2.get_letter_options()
-        print("Player 2's hand\n")
-        self.player_2.display_hand()
-        print()
 
 
         # Ask both players to send cards to the crib - the crib is saved into our crib attribute here in Game.
@@ -86,11 +87,14 @@ class Game:
         self.player_1.send_cards_to_crib(self.crib)  # Pass in our crib which is empty and fill it.
         self.player_2.send_cards_to_crib(self.crib)
 
+
+
         # Test that the crib prints.
-        print("--------Crib List--------: ")
+        print("--------Crib--------: ")
         for i in range(len(self.crib.hand.card_list)):
             self.crib.hand.card_list[i].print_card()
         # ---------------------------
+        print()
 
 
         # Convert the crib back into a list of card dictionaries (rank, suit) to pass over to backend for scoring.
@@ -105,23 +109,55 @@ class Game:
 
         # Send crib info to the backend and return the crib_id so the frontend has access to it.
         create_crib = requests.post(url=base_url+'games/'+str(self.game_id)+'/cribs', data={'crib_card_list': crib_json})
-        self.crib.crib_id = int(create_crib.content)
+        #self.crib.crib_id = int(create_crib.content)
+        self.crib_score = int(create_crib.content)
+        print("here's the crib_score: ", self.crib_score)
+
+        if self.player_1.crib_turn is True:
+            self.player_1.score += self.crib_score
+        else:
+            self.player_2.score += self.crib_score
+
+
+
+
 
         # Need to convert player's hand to list of dictionaries (not Card objects) to send over the server.
-        updated_player_hand = []
+        updated_player_1_hand = []
         for i in range(len(self.player_1.hand.card_list)):
             card_dict = {"rank": self.player_1.hand.card_list[i].rank, "suit": self.player_1.hand.card_list[i].suit}
-            updated_player_hand.append(card_dict)
+            updated_player_1_hand.append(card_dict)
 
-        json_updated_hand = json.dumps(updated_player_hand)
+        json_updated_hand_1 = json.dumps(updated_player_1_hand)
+
+        updated_player_2_hand = []
+        for i in range(len(self.player_2.hand.card_list)):
+            card_dict = {"rank": self.player_2.hand.card_list[i].rank, "suit": self.player_2.hand.card_list[i].suit}
+            updated_player_2_hand.append(card_dict)
+
+        json_updated_hand_2 = json.dumps(updated_player_2_hand)
+
 
         # Right now, both players have 4 cards, so call PUT to update and score the player's hands.
-        put_req = requests.put(url=base_url+'games/'+str(self.game_id)+'/'+self.player_1.name,
-                               data={'updated_player_hand': json_updated_hand})
-        print("Player's updated score: ", int(put_req.content))
-        self.player_1.score += int(put_req.content)  # Adds on the score that we retrieved from BE calculations.
+        put_req_p1 = requests.put(url=base_url+'games/'+str(self.game_id)+'/'+self.player_1.name,
+                               data={'updated_player_hand': json_updated_hand_1})
+        p1_hand_score = int(put_req_p1.content)
+        self.player_1.score += p1_hand_score
+
+        put_req_p2 = requests.put(url=base_url+'games/'+str(self.game_id)+'/'+self.player_2.name,
+                               data={'updated_player_hand': json_updated_hand_2})
+        p2_hand_score = int(put_req_p2.content)
+        self.player_2.score += p2_hand_score
 
 
+
+
+        # Cannot make more than 1 move.
+        self.player_1.make_move(self.game_id, self.move_instance_id)
+
+        print("Player 1 score: ", self.player_1.score)
+        print("Player 2 score: ", self.player_2.score)
+        self.reverse_turn()
 
         delete_game = requests.delete(url=deck_and_card_url+deckname)
 
@@ -149,10 +185,28 @@ class Game:
             self.player_2.crib_turn = True
             self.player_2.turn = False
 
+    def reverse_turn(self):
+        if self.player_1.turn is True and self.player_2.turn is False:
+            self.player_1.turn = False
+            self.player_2.turn = True
+        else:
+            self.player_1.turn = True
+            self.player_2.turn = False
+
 
 def main():
     new_game = Game()
-    new_game.start_game()
+    while True:
+        print("Would you like to (a) start a new game or (b) join an existing game?")
+        response = str(input())
+        if response == "a":
+            new_game.start_game()
+            break
+        elif response == "b":
+            new_game.join_game()
+            break
+        else:
+            print("Not a valid response.")
 
 
 if __name__ == '__main__':
