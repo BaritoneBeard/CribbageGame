@@ -38,7 +38,7 @@ def get_score_for_move(player_move, flipped_card = None):
         for i in list_of_methods:
             total += check_score(player_move, i)
         total += check_score(player_move, calc_flush, flipped_card)
-        player_move.moves_so_far.append(player_move)                    # APPENDS PLAYER MOVE
+        player_move.moves_so_far.append(player_move.move)                    # APPENDS PLAYER MOVE
         return total
     else:
         print("** Illegal move **")
